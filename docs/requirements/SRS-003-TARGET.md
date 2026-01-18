@@ -185,7 +185,7 @@ inference/
 **Encoding Format:**
 
 ```
-T_bytes = arch_u32_le || vendor_len_u16_le || vendor_bytes || 
+T_bytes = arch_u32_le || vendor_len_u16_le || vendor_bytes ||
           device_len_u16_le || device_bytes || abi_u32_le
 ```
 

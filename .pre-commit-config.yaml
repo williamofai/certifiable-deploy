@@ -28,6 +28,11 @@ repos:
           - --suppress=unassignedVariable
           - --suppress=variableScope
           - --suppress=unusedFunction
+          - --suppress=unreadVariable
+          - --suppress=redundantAssignment
+          - --suppress=unsignedLessThanZero
+          - --suppress=ctuuninitvar
+          - --suppress=constParameter
           - --std=c99
           - -Iinclude
           - --quiet

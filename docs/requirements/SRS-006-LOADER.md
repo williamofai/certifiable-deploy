@@ -265,35 +265,35 @@ typedef struct {
     /* State machine */
     cdl_state_t state;
     cdl_result_t last_error;
-    
+
     /* Device binding */
     cd_target_t device_target;
     bool device_target_set;
-    
+
     /* Bundle reader */
     cd_reader_ctx_t reader;
-    
+
     /* Parsed manifest */
     cd_manifest_t manifest;
     bool manifest_valid;
-    
+
     /* Expected hashes (from manifest) */
     cd_hash_t expected_weights_hash;
     cd_hash_t expected_inference_hash;
     cd_hash_t expected_certs_hash;
-    
+
     /* Measured hashes (JIT computed) */
     cd_hash_t measured_manifest_hash;
     cd_hash_t measured_weights_hash;
     cd_hash_t measured_inference_hash;
-    
+
     /* Certificate chain */
     cd_cert_chain_t cert_chain;
     bool cert_chain_valid;
-    
+
     /* Attestation */
     cd_attestation_t attestation;
-    
+
     /* Fault flags */
     cd_fault_flags_t faults;
 } cd_load_ctx_t;

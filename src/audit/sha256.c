@@ -2,7 +2,7 @@
  * @file sha256.c
  * @brief FIPS 180-4 compliant SHA-256 implementation
  * @traceability CD-MATH-001 §1, SRS-002-ATTEST
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */

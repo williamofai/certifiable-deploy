@@ -561,7 +561,6 @@ cdl_result_t cdl_finalize(cd_load_ctx_t *ctx)
         return fail(ctx, CDL_ERR_MERKLE_ROOT);
     }
 
-    ctx->state = CDL_STATE_CHAIN_VERIFIED;
 
     /*
      * Step 4: Transition to ENABLED

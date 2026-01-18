@@ -2,7 +2,7 @@
  * @file test_verify.c
  * @brief Unit tests for offline verification state machine
  * @traceability SRS-005-VERIFY
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  */
 
@@ -163,18 +163,18 @@ TEST(compare_root_match) {
     cd_hash_t h_m, h_w, h_c, h_i, expected;
     cd_attestation_t attest;
     cd_fault_flags_t faults = {0};
-    
+
     cdv_init(&ctx);
     make_valid_header(&header);
     make_test_hash(&h_m, 0x10);
     make_test_hash(&h_w, 0x20);
     make_test_hash(&h_c, 0x30);
     make_test_hash(&h_i, 0x40);
-    
+
     cd_attestation_init(&attest);
     cd_attestation_set_hashes(&attest, &h_m, &h_w, &h_c, &h_i, &faults);
     cd_attestation_get_root(&attest, &expected);
-    
+
     cdv_step(&ctx, NULL);
     cdv_step(&ctx, &header);
     cdv_step(&ctx, NULL);
@@ -188,7 +188,7 @@ TEST(compare_root_match) {
     cdv_set_inference_hash(&ctx, &h_i);
     cdv_step(&ctx, NULL);
     cdv_step(&ctx, NULL);
-    
+
     ASSERT_EQ(cdv_step(&ctx, &expected), 0);
     ASSERT_EQ(cdv_state(&ctx), CD_VSTATE_CHECK_CHAIN);
 }
@@ -197,7 +197,7 @@ TEST(compare_root_mismatch) {
     cd_verify_ctx_t ctx;
     cd_cbf_header_t header;
     cd_hash_t h_m, h_w, h_c, h_i, wrong;
-    
+
     cdv_init(&ctx);
     make_valid_header(&header);
     make_test_hash(&h_m, 0x10);
@@ -205,7 +205,7 @@ TEST(compare_root_mismatch) {
     make_test_hash(&h_c, 0x30);
     make_test_hash(&h_i, 0x40);
     make_test_hash(&wrong, 0xFF);
-    
+
     cdv_step(&ctx, NULL);
     cdv_step(&ctx, &header);
     cdv_step(&ctx, NULL);
@@ -219,7 +219,7 @@ TEST(compare_root_mismatch) {
     cdv_set_inference_hash(&ctx, &h_i);
     cdv_step(&ctx, NULL);
     cdv_step(&ctx, NULL);
-    
+
     ASSERT_EQ(cdv_step(&ctx, &wrong), -1);
     ASSERT_EQ(cdv_state(&ctx), CD_VSTATE_FAILED);
     ASSERT_EQ(cdv_reason(&ctx), CD_VERIFY_ERR_MERKLE_ROOT);
@@ -230,15 +230,15 @@ TEST(check_chain_match) {
     cd_verify_ctx_t ctx;
     cd_hash_t h_w;
     cd_cert_chain_t chain;
-    
+
     cdv_init(&ctx);
     make_test_hash(&h_w, 0x20);
     make_test_hash(&chain.h_weights, 0x20);
-    
+
     cdv_set_weights_hash(&ctx, &h_w);
     cdv_set_cert_chain(&ctx, &chain);
     ctx.state = CD_VSTATE_CHECK_CHAIN;
-    
+
     ASSERT_EQ(cdv_step(&ctx, NULL), 0);
     ASSERT_EQ(cdv_state(&ctx), CD_VSTATE_CHECK_TARGET);
 }
@@ -247,15 +247,15 @@ TEST(check_chain_mismatch) {
     cd_verify_ctx_t ctx;
     cd_hash_t h_w;
     cd_cert_chain_t chain;
-    
+
     cdv_init(&ctx);
     make_test_hash(&h_w, 0x20);
     make_test_hash(&chain.h_weights, 0xFF);
-    
+
     cdv_set_weights_hash(&ctx, &h_w);
     cdv_set_cert_chain(&ctx, &chain);
     ctx.state = CD_VSTATE_CHECK_CHAIN;
-    
+
     ASSERT_EQ(cdv_step(&ctx, NULL), -1);
     ASSERT_EQ(cdv_state(&ctx), CD_VSTATE_FAILED);
     ASSERT_EQ(cdv_reason(&ctx), CD_VERIFY_ERR_WEIGHTS_CERT_MISMATCH);
@@ -266,13 +266,13 @@ TEST(check_target_exact_match) {
     cd_verify_ctx_t ctx;
     cd_target_t bundle, device;
     cd_fault_flags_t faults = {0};
-    
+
     cdv_init(&ctx);
     cdt_parse("x86_64-intel-xeon-sysv", &bundle, &faults);
     cdt_parse("x86_64-intel-xeon-sysv", &device, &faults);
     cdv_set_device_target(&ctx, &device);
     ctx.state = CD_VSTATE_CHECK_TARGET;
-    
+
     ASSERT_EQ(cdv_step(&ctx, &bundle), 0);
     ASSERT_EQ(ctx.result.target_match, CD_MATCH_EXACT);
 }
@@ -281,13 +281,13 @@ TEST(check_target_wildcard_match) {
     cd_verify_ctx_t ctx;
     cd_target_t bundle, device;
     cd_fault_flags_t faults = {0};
-    
+
     cdv_init(&ctx);
     cdt_parse("x86_64-generic-generic-sysv", &bundle, &faults);
     cdt_parse("x86_64-intel-xeon-sysv", &device, &faults);
     cdv_set_device_target(&ctx, &device);
     ctx.state = CD_VSTATE_CHECK_TARGET;
-    
+
     ASSERT_EQ(cdv_step(&ctx, &bundle), 0);
     ASSERT_EQ(ctx.result.target_match, CD_MATCH_WILDCARD_BOTH);
 }
@@ -296,13 +296,13 @@ TEST(check_target_mismatch) {
     cd_verify_ctx_t ctx;
     cd_target_t bundle, device;
     cd_fault_flags_t faults = {0};
-    
+
     cdv_init(&ctx);
     cdt_parse("x86_64-intel-xeon-sysv", &bundle, &faults);
     cdt_parse("aarch64-nvidia-orin-lp64", &device, &faults);
     cdv_set_device_target(&ctx, &device);
     ctx.state = CD_VSTATE_CHECK_TARGET;
-    
+
     ASSERT_EQ(cdv_step(&ctx, &bundle), -1);
     ASSERT_EQ(cdv_state(&ctx), CD_VSTATE_FAILED);
     ASSERT_EQ(cdv_reason(&ctx), CD_VERIFY_ERR_TARGET_MISMATCH);
@@ -324,20 +324,20 @@ TEST(verify_bundle_success) {
     cd_cert_chain_t chain;
     cd_attestation_t attest;
     cd_fault_flags_t faults = {0};
-    
+
     make_valid_header(&header);
     make_test_hash(&h_m, 0x10);
     make_test_hash(&h_w, 0x20);
     make_test_hash(&h_c, 0x30);
     make_test_hash(&h_i, 0x40);
-    
+
     cd_attestation_init(&attest);
     cd_attestation_set_hashes(&attest, &h_m, &h_w, &h_c, &h_i, &faults);
     cd_attestation_get_root(&attest, &expected);
-    
+
     memset(&chain, 0, sizeof(chain));
     cd_hash_copy(&chain.h_weights, &h_w);
-    
+
     /* Use NULL bundle_target to skip target check */
     ASSERT_EQ(cdv_verify_bundle(&ctx, &header, &h_m, &h_w, &h_c, &h_i,
                                  &expected, &chain, NULL), 0);
@@ -349,7 +349,7 @@ TEST(verify_bundle_bad_header) {
     cd_verify_ctx_t ctx;
     cd_cbf_header_t header;
     cd_hash_t h_m, h_w, h_c, h_i, expected;
-    
+
     make_valid_header(&header);
     header.magic = 0xBAD;
     make_test_hash(&h_m, 0x10);
@@ -357,7 +357,7 @@ TEST(verify_bundle_bad_header) {
     make_test_hash(&h_c, 0x30);
     make_test_hash(&h_i, 0x40);
     make_test_hash(&expected, 0xFF);
-    
+
     cdv_init(&ctx);
     ASSERT_EQ(cdv_verify_bundle(&ctx, &header, &h_m, &h_w, &h_c, &h_i,
                                  &expected, NULL, NULL), -1);
@@ -370,17 +370,17 @@ TEST(verify_bundle_bad_root) {
     cd_cbf_header_t header;
     cd_hash_t h_m, h_w, h_c, h_i, wrong;
     cd_cert_chain_t chain;
-    
+
     make_valid_header(&header);
     make_test_hash(&h_m, 0x10);
     make_test_hash(&h_w, 0x20);
     make_test_hash(&h_c, 0x30);
     make_test_hash(&h_i, 0x40);
     make_test_hash(&wrong, 0xFF);
-    
+
     memset(&chain, 0, sizeof(chain));
     cd_hash_copy(&chain.h_weights, &h_w);
-    
+
     cdv_init(&ctx);
     ASSERT_EQ(cdv_verify_bundle(&ctx, &header, &h_m, &h_w, &h_c, &h_i,
                                  &wrong, &chain, NULL), -1);
@@ -392,12 +392,12 @@ TEST(verify_bundle_bad_root) {
 TEST(get_result) {
     cd_verify_ctx_t ctx;
     cd_verify_result_t result;
-    
+
     cdv_init(&ctx);
     ctx.result.passed = true;
     ctx.result.reason = CD_VERIFY_OK;
     ctx.result.target_match = CD_MATCH_EXACT;
-    
+
     cdv_get_result(&ctx, &result);
     ASSERT_TRUE(result.passed);
     ASSERT_EQ(result.reason, CD_VERIFY_OK);
@@ -406,16 +406,16 @@ TEST(get_result) {
 
 TEST(is_complete_states) {
     cd_verify_ctx_t ctx;
-    
+
     cdv_init(&ctx);
     ASSERT_TRUE(!cdv_is_complete(&ctx));
-    
+
     ctx.state = CD_VSTATE_COMPLETE;
     ASSERT_TRUE(cdv_is_complete(&ctx));
-    
+
     ctx.state = CD_VSTATE_FAILED;
     ASSERT_TRUE(cdv_is_complete(&ctx));
-    
+
     ctx.state = CD_VSTATE_HASH_WEIGHTS;
     ASSERT_TRUE(!cdv_is_complete(&ctx));
 }

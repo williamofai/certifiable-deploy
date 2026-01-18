@@ -2,7 +2,7 @@
  * @file test_audit.c
  * @brief Unit tests for SHA-256 and domain-separated hashing
  * @traceability SRS-002-ATTEST FR-ATT-05, CD-MATH-001 §1
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  */
 

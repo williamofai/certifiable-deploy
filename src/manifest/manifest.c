@@ -54,17 +54,17 @@ static void writer_init(jcs_writer_t *w, uint8_t *buf, size_t capacity)
 static void writer_append(jcs_writer_t *w, const char *str)
 {
     size_t len;
-    
+
     if (w->error != CDM_OK) {
         return;
     }
-    
+
     len = strlen(str);
     if (w->pos + len > w->capacity) {
         w->error = CDM_ERR_BUFFER_TOO_SMALL;
         return;
     }
-    
+
     memcpy(&w->buf[w->pos], str, len);
     w->pos += len;
 }
@@ -74,12 +74,12 @@ static void writer_append_char(jcs_writer_t *w, char c)
     if (w->error != CDM_OK) {
         return;
     }
-    
+
     if (w->pos >= w->capacity) {
         w->error = CDM_ERR_BUFFER_TOO_SMALL;
         return;
     }
-    
+
     w->buf[w->pos++] = (uint8_t)c;
 }
 
@@ -87,18 +87,18 @@ static void writer_append_string(jcs_writer_t *w, const char *str)
 {
     size_t available;
     cdm_result_t r;
-    
+
     if (w->error != CDM_OK) {
         return;
     }
-    
+
     available = w->capacity - w->pos;
     r = cdm_jcs_write_string(&w->buf[w->pos], &available, str);
     if (r != CDM_OK) {
         w->error = r;
         return;
     }
-    
+
     w->pos += available;
 }
 
@@ -106,18 +106,18 @@ static void writer_append_uint(jcs_writer_t *w, uint64_t value)
 {
     size_t available;
     cdm_result_t r;
-    
+
     if (w->error != CDM_OK) {
         return;
     }
-    
+
     available = w->capacity - w->pos;
     r = cdm_jcs_write_uint(&w->buf[w->pos], &available, value);
     if (r != CDM_OK) {
         w->error = r;
         return;
     }
-    
+
     w->pos += available;
 }
 
@@ -125,18 +125,18 @@ static void writer_append_hash(jcs_writer_t *w, const cd_hash_t *hash)
 {
     size_t available;
     cdm_result_t r;
-    
+
     if (w->error != CDM_OK) {
         return;
     }
-    
+
     available = w->capacity - w->pos;
     r = cdm_jcs_write_hash(&w->buf[w->pos], &available, hash);
     if (r != CDM_OK) {
         w->error = r;
         return;
     }
-    
+
     w->pos += available;
 }
 
@@ -160,35 +160,35 @@ cdm_result_t cdm_check_target(const cd_target_t *target)
     const char *arch_str;
     const char *abi_str;
     cdm_result_t r;
-    
+
     if (target == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     /* Check architecture is known */
     arch_str = cdm_arch_to_string(target->architecture);
     if (arch_str == NULL) {
         return CDM_ERR_INVALID_ARCH;
     }
-    
+
     /* Validate vendor field: ^[a-z0-9\-_]+$ with max length 32 */
     r = cdm_validate_field(target->vendor, CDM_VENDOR_MAX_LEN);
     if (r != CDM_OK) {
         return CDM_ERR_INVALID_VENDOR;
     }
-    
+
     /* Validate device field: ^[a-z0-9\-_]+$ with max length 32 */
     r = cdm_validate_field(target->device, CDM_DEVICE_MAX_LEN);
     if (r != CDM_OK) {
         return CDM_ERR_INVALID_DEVICE;
     }
-    
+
     /* Check ABI is known */
     abi_str = cdm_abi_to_string(target->abi);
     if (abi_str == NULL) {
         return CDM_ERR_INVALID_ABI;
     }
-    
+
     return CDM_OK;
 }
 
@@ -206,11 +206,11 @@ cdm_result_t cdm_builder_init(cdm_builder_t *ctx)
     if (ctx == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     memset(ctx, 0, sizeof(cdm_builder_t));
     ctx->state = CDM_STATE_CONFIGURING;
     ctx->manifest.manifest_version = CDM_VERSION;
-    
+
     return CDM_OK;
 }
 
@@ -223,28 +223,28 @@ cdm_result_t cdm_set_mode(cdm_builder_t *ctx, const char *mode)
     if (ctx == NULL || mode == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     if (ctx->state != CDM_STATE_CONFIGURING) {
         ctx->faults.domain = 1;
         return CDM_ERR_STATE;
     }
-    
+
     /* Validate mode is exactly "deterministic" or "audit" */
     if (strcmp(mode, "deterministic") != 0 && strcmp(mode, "audit") != 0) {
         ctx->faults.domain = 1;
         return CDM_ERR_INVALID_MODE;
     }
-    
+
     /* Safe copy with bounds check */
     if (strlen(mode) >= sizeof(ctx->manifest.mode)) {
         ctx->faults.domain = 1;
         return CDM_ERR_INVALID_MODE;
     }
-    
+
     memset(ctx->manifest.mode, 0, sizeof(ctx->manifest.mode));
     strcpy(ctx->manifest.mode, mode);
     ctx->mode_set = true;
-    
+
     return CDM_OK;
 }
 
@@ -257,21 +257,21 @@ cdm_result_t cdm_set_created_at(cdm_builder_t *ctx, uint64_t ts)
     if (ctx == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     if (ctx->state != CDM_STATE_CONFIGURING) {
         ctx->faults.domain = 1;
         return CDM_ERR_STATE;
     }
-    
+
     /* Bounds check: 0 <= ts <= year 2100 (FR-MAN-04) */
     if (ts > CDM_MAX_TIMESTAMP) {
         ctx->faults.domain = 1;
         return CDM_ERR_INVALID_TIMESTAMP;
     }
-    
+
     ctx->manifest.created_at = ts;
     ctx->timestamp_set = true;
-    
+
     return CDM_OK;
 }
 
@@ -282,27 +282,27 @@ cdm_result_t cdm_set_created_at(cdm_builder_t *ctx, uint64_t ts)
 cdm_result_t cdm_set_target(cdm_builder_t *ctx, const cd_target_t *target)
 {
     cdm_result_t r;
-    
+
     if (ctx == NULL || target == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     if (ctx->state != CDM_STATE_CONFIGURING) {
         ctx->faults.domain = 1;
         return CDM_ERR_STATE;
     }
-    
+
     /* Validate target tuple */
     r = cdm_check_target(target);
     if (r != CDM_OK) {
         ctx->faults.domain = 1;
         return r;
     }
-    
+
     /* Copy target */
     memcpy(&ctx->manifest.target, target, sizeof(cd_target_t));
     ctx->target_set = true;
-    
+
     return CDM_OK;
 }
 
@@ -315,15 +315,15 @@ cdm_result_t cdm_set_weights_hash(cdm_builder_t *ctx, const cd_hash_t *digest)
     if (ctx == NULL || digest == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     if (ctx->state != CDM_STATE_CONFIGURING) {
         ctx->faults.domain = 1;
         return CDM_ERR_STATE;
     }
-    
+
     memcpy(&ctx->manifest.weights_digest, digest, sizeof(cd_hash_t));
     ctx->weights_set = true;
-    
+
     return CDM_OK;
 }
 
@@ -336,15 +336,15 @@ cdm_result_t cdm_set_certs_hash(cdm_builder_t *ctx, const cd_hash_t *digest)
     if (ctx == NULL || digest == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     if (ctx->state != CDM_STATE_CONFIGURING) {
         ctx->faults.domain = 1;
         return CDM_ERR_STATE;
     }
-    
+
     memcpy(&ctx->manifest.certs_digest, digest, sizeof(cd_hash_t));
     ctx->certs_set = true;
-    
+
     return CDM_OK;
 }
 
@@ -357,15 +357,15 @@ cdm_result_t cdm_set_inference_hash(cdm_builder_t *ctx, const cd_hash_t *digest)
     if (ctx == NULL || digest == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     if (ctx->state != CDM_STATE_CONFIGURING) {
         ctx->faults.domain = 1;
         return CDM_ERR_STATE;
     }
-    
+
     memcpy(&ctx->manifest.inference_digest, digest, sizeof(cd_hash_t));
     ctx->inference_set = true;
-    
+
     return CDM_OK;
 }
 
@@ -383,16 +383,16 @@ cdm_result_t cdm_finalize_jcs(cdm_builder_t *ctx, uint8_t *out, size_t *out_len)
     jcs_writer_t w;
     const char *arch_str;
     const char *abi_str;
-    
+
     if (ctx == NULL || out == NULL || out_len == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     if (ctx->state != CDM_STATE_CONFIGURING) {
         ctx->faults.domain = 1;
         return CDM_ERR_STATE;
     }
-    
+
     /* Check all required fields are set */
     if (!ctx->mode_set) {
         ctx->faults.domain = 1;
@@ -410,7 +410,7 @@ cdm_result_t cdm_finalize_jcs(cdm_builder_t *ctx, uint8_t *out, size_t *out_len)
         ctx->faults.domain = 1;
         return CDM_ERR_MISSING_FIELD;
     }
-    
+
     /* Get arch/abi strings (already validated in set_target) */
     arch_str = cdm_arch_to_string(ctx->manifest.target.architecture);
     abi_str = cdm_abi_to_string(ctx->manifest.target.abi);
@@ -418,93 +418,93 @@ cdm_result_t cdm_finalize_jcs(cdm_builder_t *ctx, uint8_t *out, size_t *out_len)
         ctx->faults.domain = 1;
         return CDM_ERR_INVALID_TARGET;
     }
-    
+
     /* Initialize writer */
     writer_init(&w, out, *out_len);
-    
+
     /*
      * Emit JCS-canonical JSON
      *
      * Key ordering for root object (sorted UTF-16):
      *   components < created_at < manifest_version < mode < target
      */
-    
+
     /* Root object open */
     writer_append_char(&w, '{');
-    
+
     /*
      * "components": {...}
      * Key ordering: certificates < inference < weights
      */
     writer_append(&w, "\"components\":{");
-    
+
     /* certificates */
     writer_append(&w, "\"certificates\":{\"digest\":");
     writer_append_hash(&w, &ctx->manifest.certs_digest);
     writer_append_char(&w, '}');
-    
+
     /* inference */
     writer_append(&w, ",\"inference\":{\"digest\":");
     writer_append_hash(&w, &ctx->manifest.inference_digest);
     writer_append_char(&w, '}');
-    
+
     /* weights */
     writer_append(&w, ",\"weights\":{\"digest\":");
     writer_append_hash(&w, &ctx->manifest.weights_digest);
     writer_append(&w, "}}");
-    
+
     /* "created_at": N */
     writer_append(&w, ",\"created_at\":");
     writer_append_uint(&w, ctx->manifest.created_at);
-    
+
     /* "manifest_version": 1 */
     writer_append(&w, ",\"manifest_version\":");
     writer_append_uint(&w, ctx->manifest.manifest_version);
-    
+
     /* "mode": "..." */
     writer_append(&w, ",\"mode\":");
     writer_append_string(&w, ctx->manifest.mode);
-    
+
     /*
      * "target": {...}
      * Key ordering: abi < arch < device < vendor
      */
     writer_append(&w, ",\"target\":{");
-    
+
     /* abi */
     writer_append(&w, "\"abi\":");
     writer_append_string(&w, abi_str);
-    
+
     /* arch */
     writer_append(&w, ",\"arch\":");
     writer_append_string(&w, arch_str);
-    
+
     /* device */
     writer_append(&w, ",\"device\":");
     writer_append_string(&w, ctx->manifest.target.device);
-    
+
     /* vendor */
     writer_append(&w, ",\"vendor\":");
     writer_append_string(&w, ctx->manifest.target.vendor);
-    
+
     /* Close target and root */
     writer_append(&w, "}}");
-    
+
     /* Check for errors */
     if (w.error != CDM_OK) {
         ctx->faults.io_error = 1;
         ctx->state = CDM_STATE_ERROR;
         return w.error;
     }
-    
+
     /* Null terminate (but don't include in length) */
     if (w.pos < w.capacity) {
         w.buf[w.pos] = '\0';
     }
-    
+
     *out_len = w.pos;
     ctx->state = CDM_STATE_FINALIZED;
-    
+
     return CDM_OK;
 }
 
@@ -573,13 +573,13 @@ static bool parser_match_char(parser_ctx_t *ctx, char expected)
 static cdm_result_t parser_read_string(parser_ctx_t *ctx, char *out, size_t out_size)
 {
     size_t i = 0;
-    
+
     /* Expect opening quote */
     if (ctx->p >= ctx->end || *ctx->p != '"') {
         return CDM_ERR_PARSE_FAILED;
     }
     ctx->p++;
-    
+
     /* Read characters until closing quote */
     while (ctx->p < ctx->end && *ctx->p != '"') {
         if (*ctx->p == '\\') {
@@ -588,7 +588,7 @@ static cdm_result_t parser_read_string(parser_ctx_t *ctx, char *out, size_t out_
             if (ctx->p >= ctx->end) {
                 return CDM_ERR_PARSE_FAILED;
             }
-            
+
             char escaped;
             switch (*ctx->p) {
                 case '"':  escaped = '"';  break;
@@ -606,7 +606,7 @@ static cdm_result_t parser_read_string(parser_ctx_t *ctx, char *out, size_t out_
                 default:
                     return CDM_ERR_PARSE_FAILED;
             }
-            
+
             if (i < out_size - 1) {
                 out[i++] = escaped;
             } else {
@@ -622,13 +622,13 @@ static cdm_result_t parser_read_string(parser_ctx_t *ctx, char *out, size_t out_
         }
         ctx->p++;
     }
-    
+
     /* Expect closing quote */
     if (ctx->p >= ctx->end || *ctx->p != '"') {
         return CDM_ERR_PARSE_FAILED;
     }
     ctx->p++;
-    
+
     out[i] = '\0';
     return CDM_OK;
 }
@@ -640,21 +640,21 @@ static cdm_result_t parser_read_uint64(parser_ctx_t *ctx, uint64_t *out)
 {
     uint64_t value = 0;
     bool has_digit = false;
-    
+
     /* Check for leading zero (not allowed except for "0") */
     if (ctx->p < ctx->end && *ctx->p == '0') {
         ctx->p++;
         has_digit = true;
-        
+
         /* If next char is a digit, this is invalid "0X" */
         if (ctx->p < ctx->end && *ctx->p >= '0' && *ctx->p <= '9') {
             return CDM_ERR_PARSE_FAILED;  /* Leading zero not allowed */
         }
-        
+
         *out = 0;
         return CDM_OK;
     }
-    
+
     /* Parse digits */
     while (ctx->p < ctx->end && *ctx->p >= '0' && *ctx->p <= '9') {
         /* Check for overflow */
@@ -666,11 +666,11 @@ static cdm_result_t parser_read_uint64(parser_ctx_t *ctx, uint64_t *out)
         ctx->p++;
         has_digit = true;
     }
-    
+
     if (!has_digit) {
         return CDM_ERR_PARSE_FAILED;
     }
-    
+
     *out = value;
     return CDM_OK;
 }
@@ -681,15 +681,15 @@ static cdm_result_t parser_read_uint64(parser_ctx_t *ctx, uint64_t *out)
 static cdm_result_t parser_read_hex_hash(const char *hex, size_t len, cd_hash_t *out)
 {
     size_t i;
-    
+
     if (len != 64) {
         return CDM_ERR_INVALID_DIGEST;
     }
-    
+
     for (i = 0; i < 32; i++) {
         uint8_t val = 0;
         char c;
-        
+
         /* High nibble */
         c = hex[i * 2];
         if (c >= '0' && c <= '9') {
@@ -700,7 +700,7 @@ static cdm_result_t parser_read_hex_hash(const char *hex, size_t len, cd_hash_t 
             /* Uppercase or invalid - reject (FR-MAN-03: lowercase only) */
             return CDM_ERR_INVALID_DIGEST;
         }
-        
+
         /* Low nibble */
         c = hex[i * 2 + 1];
         if (c >= '0' && c <= '9') {
@@ -710,10 +710,10 @@ static cdm_result_t parser_read_hex_hash(const char *hex, size_t len, cd_hash_t 
         } else {
             return CDM_ERR_INVALID_DIGEST;
         }
-        
+
         out->bytes[i] = val;
     }
-    
+
     return CDM_OK;
 }
 
@@ -729,37 +729,37 @@ static cdm_result_t parser_read_hash_entry(parser_ctx_t *ctx, cd_hash_t *out)
     char key[32];
     char hex[128];
     cdm_result_t r;
-    
+
     parser_skip_ws(ctx);
     if (!parser_match_char(ctx, '{')) {
         return CDM_ERR_PARSE_FAILED;
     }
-    
+
     parser_skip_ws(ctx);
     r = parser_read_string(ctx, key, sizeof(key));
     if (r != CDM_OK) return r;
-    
+
     if (strcmp(key, "digest") != 0) {
         return CDM_ERR_UNKNOWN_KEY;  /* Only "digest" allowed */
     }
-    
+
     parser_skip_ws(ctx);
     if (!parser_match_char(ctx, ':')) {
         return CDM_ERR_PARSE_FAILED;
     }
-    
+
     parser_skip_ws(ctx);
     r = parser_read_string(ctx, hex, sizeof(hex));
     if (r != CDM_OK) return r;
-    
+
     r = parser_read_hex_hash(hex, strlen(hex), out);
     if (r != CDM_OK) return r;
-    
+
     parser_skip_ws(ctx);
     if (!parser_match_char(ctx, '}')) {
         return CDM_ERR_PARSE_FAILED;
     }
-    
+
     return CDM_OK;
 }
 
@@ -774,21 +774,21 @@ static cdm_result_t parser_read_components(parser_ctx_t *ctx, cd_manifest_t *out
     char key[32];
     cdm_result_t r;
     bool first = true;
-    
+
     parser_skip_ws(ctx);
     if (!parser_match_char(ctx, '{')) {
         return CDM_ERR_PARSE_FAILED;
     }
-    
+
     while (true) {
         parser_skip_ws(ctx);
-        
+
         /* Check for end of object */
         if (ctx->p < ctx->end && *ctx->p == '}') {
             ctx->p++;
             break;
         }
-        
+
         /* Comma between entries (except first) */
         if (!first) {
             if (!parser_match_char(ctx, ',')) {
@@ -797,16 +797,16 @@ static cdm_result_t parser_read_components(parser_ctx_t *ctx, cd_manifest_t *out
             parser_skip_ws(ctx);
         }
         first = false;
-        
+
         /* Read key */
         r = parser_read_string(ctx, key, sizeof(key));
         if (r != CDM_OK) return r;
-        
+
         parser_skip_ws(ctx);
         if (!parser_match_char(ctx, ':')) {
             return CDM_ERR_PARSE_FAILED;
         }
-        
+
         /* Read value based on key */
         if (strcmp(key, "weights") == 0) {
             if (*found_weights) return CDM_ERR_DUPLICATE_KEY;
@@ -831,7 +831,7 @@ static cdm_result_t parser_read_components(parser_ctx_t *ctx, cd_manifest_t *out
             return CDM_ERR_ADDITIONAL_PROPS;
         }
     }
-    
+
     return CDM_OK;
 }
 
@@ -847,21 +847,21 @@ static cdm_result_t parser_read_target(parser_ctx_t *ctx, cd_target_t *out,
     char value[64];
     cdm_result_t r;
     bool first = true;
-    
+
     parser_skip_ws(ctx);
     if (!parser_match_char(ctx, '{')) {
         return CDM_ERR_PARSE_FAILED;
     }
-    
+
     while (true) {
         parser_skip_ws(ctx);
-        
+
         /* Check for end of object */
         if (ctx->p < ctx->end && *ctx->p == '}') {
             ctx->p++;
             break;
         }
-        
+
         /* Comma between entries (except first) */
         if (!first) {
             if (!parser_match_char(ctx, ',')) {
@@ -870,20 +870,20 @@ static cdm_result_t parser_read_target(parser_ctx_t *ctx, cd_target_t *out,
             parser_skip_ws(ctx);
         }
         first = false;
-        
+
         /* Read key */
         r = parser_read_string(ctx, key, sizeof(key));
         if (r != CDM_OK) return r;
-        
+
         parser_skip_ws(ctx);
         if (!parser_match_char(ctx, ':')) {
             return CDM_ERR_PARSE_FAILED;
         }
-        
+
         parser_skip_ws(ctx);
         r = parser_read_string(ctx, value, sizeof(value));
         if (r != CDM_OK) return r;
-        
+
         /* Process based on key */
         if (strcmp(key, "arch") == 0) {
             if (*found_arch) return CDM_ERR_DUPLICATE_KEY;
@@ -922,7 +922,7 @@ static cdm_result_t parser_read_target(parser_ctx_t *ctx, cd_target_t *out,
             return CDM_ERR_ADDITIONAL_PROPS;
         }
     }
-    
+
     return CDM_OK;
 }
 
@@ -942,40 +942,40 @@ static cdm_result_t cdm_parse_internal(const uint8_t *json, size_t len,
     char strval[64];
     uint64_t intval;
     cdm_result_t r;
-    
+
     /* Required field tracking */
     bool found_version = false;
     bool found_mode = false;
     bool found_created_at = false;
     bool found_target = false;
     bool found_components = false;
-    
+
     /* Target field tracking */
     bool found_arch = false;
     bool found_vendor = false;
     bool found_device = false;
     bool found_abi = false;
-    
+
     /* Components field tracking */
     bool found_weights = false;
     bool found_certs = false;
     bool found_inference = false;
-    
+
     bool first_field = true;
-    
+
     if (json == NULL || out == NULL) {
         if (faults != NULL) faults->domain = 1;
         return CDM_ERR_NULL;
     }
-    
+
     memset(out, 0, sizeof(cd_manifest_t));
-    
+
     /* Initialize parser context */
     ctx.p = (const char *)json;
     ctx.end = ctx.p + len;
     ctx.faults = faults;
     ctx.strict_canonical = strict_canonical;
-    
+
     /* For strict mode, verify no leading/trailing whitespace */
     if (strict_canonical) {
         if (len > 0 && (json[0] == ' ' || json[0] == '\t' ||
@@ -989,25 +989,25 @@ static cdm_result_t cdm_parse_internal(const uint8_t *json, size_t len,
             return CDM_ERR_NON_CANONICAL;
         }
     }
-    
+
     parser_skip_ws(&ctx);
-    
+
     /* Expect opening brace */
     if (!parser_match_char(&ctx, '{')) {
         if (faults != NULL) faults->parse_error = 1;
         return CDM_ERR_PARSE_FAILED;
     }
-    
+
     /* Parse key-value pairs */
     while (true) {
         parser_skip_ws(&ctx);
-        
+
         /* Check for end of object */
         if (ctx.p < ctx.end && *ctx.p == '}') {
             ctx.p++;
             break;
         }
-        
+
         /* Comma between entries (except first) */
         if (!first_field) {
             if (!parser_match_char(&ctx, ',')) {
@@ -1017,21 +1017,21 @@ static cdm_result_t cdm_parse_internal(const uint8_t *json, size_t len,
             parser_skip_ws(&ctx);
         }
         first_field = false;
-        
+
         /* Read key */
         r = parser_read_string(&ctx, key, sizeof(key));
         if (r != CDM_OK) {
             if (faults != NULL) faults->parse_error = 1;
             return r;
         }
-        
+
         parser_skip_ws(&ctx);
         if (!parser_match_char(&ctx, ':')) {
             if (faults != NULL) faults->parse_error = 1;
             return CDM_ERR_PARSE_FAILED;
         }
         parser_skip_ws(&ctx);
-        
+
         /* Parse value based on key */
         if (strcmp(key, "manifest_version") == 0) {
             if (found_version) {
@@ -1129,23 +1129,23 @@ static cdm_result_t cdm_parse_internal(const uint8_t *json, size_t len,
             return CDM_ERR_ADDITIONAL_PROPS;
         }
     }
-    
+
     /* Check all required root fields present */
     if (!found_version || !found_mode || !found_created_at ||
         !found_target || !found_components) {
         if (faults != NULL) faults->parse_error = 1;
         return CDM_ERR_MISSING_FIELD;
     }
-    
+
     /* Skip any trailing whitespace */
     parser_skip_ws(&ctx);
-    
+
     /* Must be at end of input */
     if (ctx.p != ctx.end) {
         if (faults != NULL) faults->parse_error = 1;
         return CDM_ERR_PARSE_FAILED;
     }
-    
+
     return CDM_OK;
 }
 
@@ -1157,20 +1157,20 @@ cdm_result_t cdm_parse(const uint8_t *json, size_t len,
                        cd_manifest_t *out, cd_fault_flags_t *faults)
 {
     cdm_result_t r;
-    
+
     /* First, parse the manifest */
     r = cdm_parse_internal(json, len, out, faults, true);
     if (r != CDM_OK) {
         return r;
     }
-    
+
     /* Then verify canonicalization */
     r = cdm_verify_canonical(json, len);
     if (r != CDM_OK) {
         if (faults != NULL) faults->parse_error = 1;
         return r;
     }
-    
+
     return CDM_OK;
 }
 
@@ -1195,52 +1195,52 @@ cdm_result_t cdm_verify_canonical(const uint8_t *json, size_t len)
     uint8_t canonical[CDM_MAX_JSON_SIZE];
     size_t canonical_len;
     cdm_result_t r;
-    
+
     if (json == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     /* Parse the input */
     r = cdm_parse_internal(json, len, &manifest, NULL, false);
     if (r != CDM_OK) {
         return r;
     }
-    
+
     /* Re-emit in canonical form */
     r = cdm_builder_init(&builder);
     if (r != CDM_OK) return r;
-    
+
     r = cdm_set_mode(&builder, manifest.mode);
     if (r != CDM_OK) return r;
-    
+
     r = cdm_set_created_at(&builder, manifest.created_at);
     if (r != CDM_OK) return r;
-    
+
     r = cdm_set_target(&builder, &manifest.target);
     if (r != CDM_OK) return r;
-    
+
     r = cdm_set_weights_hash(&builder, &manifest.weights_digest);
     if (r != CDM_OK) return r;
-    
+
     r = cdm_set_certs_hash(&builder, &manifest.certs_digest);
     if (r != CDM_OK) return r;
-    
+
     r = cdm_set_inference_hash(&builder, &manifest.inference_digest);
     if (r != CDM_OK) return r;
-    
+
     canonical_len = sizeof(canonical);
     r = cdm_finalize_jcs(&builder, canonical, &canonical_len);
     if (r != CDM_OK) return r;
-    
+
     /* Compare byte-for-byte */
     if (canonical_len != len) {
         return CDM_ERR_NON_CANONICAL;
     }
-    
+
     if (memcmp(json, canonical, len) != 0) {
         return CDM_ERR_NON_CANONICAL;
     }
-    
+
     return CDM_OK;
 }
 
@@ -1256,20 +1256,20 @@ bool cdm_manifest_equal(const cd_manifest_t *a, const cd_manifest_t *b)
     if (a == NULL || b == NULL) {
         return (a == b);
     }
-    
+
     if (a->manifest_version != b->manifest_version) return false;
     if (strcmp(a->mode, b->mode) != 0) return false;
     if (a->created_at != b->created_at) return false;
-    
+
     if (a->target.architecture != b->target.architecture) return false;
     if (strcmp(a->target.vendor, b->target.vendor) != 0) return false;
     if (strcmp(a->target.device, b->target.device) != 0) return false;
     if (a->target.abi != b->target.abi) return false;
-    
+
     if (memcmp(&a->weights_digest, &b->weights_digest, sizeof(cd_hash_t)) != 0) return false;
     if (memcmp(&a->certs_digest, &b->certs_digest, sizeof(cd_hash_t)) != 0) return false;
     if (memcmp(&a->inference_digest, &b->inference_digest, sizeof(cd_hash_t)) != 0) return false;
-    
+
     return true;
 }
 
@@ -1289,25 +1289,25 @@ cdm_result_t cdm_to_pretty_json(const cd_manifest_t *manifest,
     char certs_hex[65];
     char inference_hex[65];
     size_t i;
-    
+
     if (manifest == NULL || out == NULL || out_len == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     arch_str = cdm_arch_to_string(manifest->target.architecture);
     abi_str = cdm_abi_to_string(manifest->target.abi);
-    
+
     if (arch_str == NULL || abi_str == NULL) {
         return CDM_ERR_INVALID_TARGET;
     }
-    
+
     /* Convert hashes to hex */
     for (i = 0; i < 32; i++) {
         snprintf(&weights_hex[i*2], 3, "%02x", manifest->weights_digest.bytes[i]);
         snprintf(&certs_hex[i*2], 3, "%02x", manifest->certs_digest.bytes[i]);
         snprintf(&inference_hex[i*2], 3, "%02x", manifest->inference_digest.bytes[i]);
     }
-    
+
     written = snprintf((char *)out, *out_len,
         "{\n"
         "  \"manifest_version\": %u,\n"
@@ -1336,11 +1336,11 @@ cdm_result_t cdm_to_pretty_json(const cd_manifest_t *manifest,
         certs_hex,
         inference_hex
     );
-    
+
     if (written < 0 || (size_t)written >= *out_len) {
         return CDM_ERR_BUFFER_TOO_SMALL;
     }
-    
+
     *out_len = (size_t)written;
     return CDM_OK;
 }

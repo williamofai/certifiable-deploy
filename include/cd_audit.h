@@ -2,7 +2,7 @@
  * @file cd_audit.h
  * @brief Cryptographic audit primitives for certifiable-deploy
  * @traceability SRS-002-ATTEST, CD-MATH-001 §1
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */

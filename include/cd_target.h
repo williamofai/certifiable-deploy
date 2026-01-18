@@ -2,7 +2,7 @@
  * @file cd_target.h
  * @brief Target tuple API for certifiable-deploy
  * @traceability SRS-003-TARGET
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */

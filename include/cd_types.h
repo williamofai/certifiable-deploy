@@ -2,7 +2,7 @@
  * @file cd_types.h
  * @brief Core type definitions for certifiable-deploy
  * @traceability CD-STRUCT-001
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */
@@ -49,7 +49,7 @@ typedef struct {
 } cd_fault_flags_t;
 
 static inline bool cd_has_fault(const cd_fault_flags_t *f) {
-    return f->overflow || f->underflow || f->div_zero || 
+    return f->overflow || f->underflow || f->div_zero ||
            f->domain || f->io_error || f->hash_mismatch ||
            f->parse_error || f->chain_invalid;
 }

@@ -2,7 +2,7 @@
  * @file cd_verify.h
  * @brief Offline verification API for certifiable-deploy
  * @traceability SRS-005-VERIFY
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */

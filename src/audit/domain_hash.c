@@ -2,9 +2,9 @@
  * @file domain_hash.c
  * @brief Domain-separated hashing per CD-MATH-001 §1.2
  * @traceability FR-ATT-05, CD-MATH-001 §1.2
- * 
+ *
  * DH(tag, payload) = H(tag || LE64(|payload|) || payload)
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */
@@ -71,10 +71,10 @@ void cd_domain_hash_init(cd_domain_hash_ctx_t *ctx, const char *tag,
     /* Initialize SHA-256 and feed tag + length prefix */
     sha_ctx = (cd_sha256_ctx_t *)ctx->state;
     cd_sha256_init(sha_ctx);
-    
+
     /* Feed tag (no null terminator) */
     cd_sha256_update(sha_ctx, tag, tag_len);
-    
+
     /* Feed LE64(payload_len) */
     encode_le64(payload_len, len_bytes);
     cd_sha256_update(sha_ctx, len_bytes, 8);

@@ -2,13 +2,13 @@
  * @file verify.c
  * @brief Offline verification state machine per SRS-005-VERIFY
  * @traceability SRS-005-VERIFY
- * 
+ *
  * Verification flow:
  * INIT → PARSE_HEADER → PARSE_TOC → EXTRACT_COMPONENTS →
  * HASH_MANIFEST → HASH_WEIGHTS → HASH_CERTS → HASH_INFERENCE →
  * COMPUTE_MERKLE → COMPARE_ROOT → CHECK_CHAIN → CHECK_TARGET →
  * [CHECK_SIGNATURE] → RESULT
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */
@@ -47,7 +47,7 @@ static const cd_verify_state_t next_state[] = {
 
 void cdv_init(cd_verify_ctx_t *ctx) {
     if (!ctx) return;
-    
+
     memset(ctx, 0, sizeof(*ctx));
     ctx->state = CD_VSTATE_INIT;
     ctx->result.passed = false;
@@ -102,7 +102,7 @@ static int step_parse_header(cd_verify_ctx_t *ctx, const cd_cbf_header_t *header
 
 static int step_compute_merkle(cd_verify_ctx_t *ctx) {
     cd_attestation_compute(&ctx->attestation, &ctx->faults);
-    
+
     if (cd_has_fault(&ctx->faults)) {
         fail(ctx, CD_VERIFY_ERR_IO);
         return -1;
@@ -297,7 +297,7 @@ int cdv_verify_bundle(cd_verify_ctx_t *ctx,
                       const cd_hash_t *expected_root,
                       const cd_cert_chain_t *chain,
                       const cd_target_t *bundle_target) {
-    
+
     cdv_init(ctx);
 
     /* Step 1: Parse header */

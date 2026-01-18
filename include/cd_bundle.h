@@ -2,11 +2,11 @@
  * @file cd_bundle.h
  * @brief CBF v1 bundle builder and reader API
  * @traceability SRS-001-BUNDLE, CD-MATH-001 Section 2, CD-STRUCT-001 Section 7
- * 
+ *
  * CBF v1 (Certifiable Bundle Format) is a deterministic container format
  * for safety-critical ML deployment. All multi-byte integers are stored
  * little-endian for cross-platform determinism (FR-BUN-04).
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */
@@ -120,13 +120,13 @@ typedef struct {
  * - Collapses consecutive slashes
  * - Removes trailing slash
  * - Rejects paths containing ".."
- * 
+ *
  * @param input   Input path string
  * @param output  Output buffer (must be at least CD_MAX_PATH bytes)
  * @param out_len Size of output buffer
  * @param faults  Fault flags (domain set on error)
  * @return CD_PATH_OK on success, error code otherwise
- * 
+ *
  * @traceability FR-BUN-02, CD-MATH-001 Section 2.2
  */
 cd_path_result_t cd_path_normalize(const char *input, char *output,
@@ -134,21 +134,21 @@ cd_path_result_t cd_path_normalize(const char *input, char *output,
 
 /**
  * Compare two normalized paths lexicographically.
- * 
+ *
  * @param a First path (may be NULL)
  * @param b Second path (may be NULL)
  * @return <0 if a<b, 0 if a==b, >0 if a>b
- * 
+ *
  * @traceability FR-BUN-02
  */
 int cd_path_compare(const char *a, const char *b);
 
 /**
  * Validate a normalized path.
- * 
+ *
  * @param path Path to validate
  * @return CD_PATH_OK if valid, error code otherwise
- * 
+ *
  * @traceability FR-BUN-02
  */
 cd_path_result_t cd_path_validate(const char *path);
@@ -159,28 +159,28 @@ cd_path_result_t cd_path_validate(const char *path);
 
 /**
  * Initialize bundle builder.
- * 
+ *
  * @param ctx        Builder context (caller-provided)
  * @param out_stream Open file stream for writing (must be seekable)
  * @return CD_BUNDLE_OK on success, error code otherwise
- * 
+ *
  * @traceability FR-BUN-01
  */
 cd_bundle_result_t cd_builder_init(cd_builder_ctx_t *ctx, FILE *out_stream);
 
 /**
  * Add a file payload to the bundle.
- * 
+ *
  * Files MUST be added in sorted order by normalized path.
  * Duplicate paths are rejected.
- * 
+ *
  * @param ctx       Builder context in WRITING state
  * @param path      File path (will be normalized)
  * @param data      File payload (may be NULL if len == 0)
  * @param len       Payload length in bytes
  * @param file_hash Pre-computed hash of payload
  * @return CD_BUNDLE_OK on success, error code otherwise
- * 
+ *
  * @traceability FR-BUN-02, FR-BUN-03
  */
 cd_bundle_result_t cd_builder_add_file(cd_builder_ctx_t *ctx, const char *path,
@@ -189,13 +189,13 @@ cd_bundle_result_t cd_builder_add_file(cd_builder_ctx_t *ctx, const char *path,
 
 /**
  * Finalize the bundle with attestation.
- * 
+ *
  * @param ctx         Builder context in WRITING state
  * @param merkle_root Merkle root hash for attestation
  * @param has_signature True if signature is provided
  * @param signature   64-byte Ed25519 signature (required if has_signature)
  * @return CD_BUNDLE_OK on success, error code otherwise
- * 
+ *
  * @traceability FR-BUN-05
  */
 cd_bundle_result_t cd_builder_finalize(cd_builder_ctx_t *ctx,
@@ -205,7 +205,7 @@ cd_bundle_result_t cd_builder_finalize(cd_builder_ctx_t *ctx,
 
 /**
  * Get fault flags from builder.
- * 
+ *
  * @param ctx Builder context
  * @return Pointer to fault flags, or NULL if ctx is NULL
  */
@@ -217,15 +217,15 @@ const cd_fault_flags_t *cd_builder_get_faults(const cd_builder_ctx_t *ctx);
 
 /**
  * Initialize reader from memory buffer.
- * 
+ *
  * Zero-copy design: all data access is via pointer arithmetic.
  * Buffer must remain valid for lifetime of reader context.
- * 
+ *
  * @param ctx  Reader context (caller-provided)
  * @param data Pointer to CBF bundle data
  * @param len  Length of buffer in bytes
  * @return CD_READ_OK on success, error code otherwise
- * 
+ *
  * @traceability NFR-BUN-01
  */
 cd_read_result_t cd_reader_init(cd_reader_ctx_t *ctx, const uint8_t *data,
@@ -233,48 +233,48 @@ cd_read_result_t cd_reader_init(cd_reader_ctx_t *ctx, const uint8_t *data,
 
 /**
  * Parse CBF header.
- * 
+ *
  * @param ctx Reader context
  * @return CD_READ_OK on success, error code otherwise
- * 
+ *
  * @traceability SRS-001-BUNDLE Section 6.1
  */
 cd_read_result_t cd_reader_parse_header(cd_reader_ctx_t *ctx);
 
 /**
  * Parse table of contents.
- * 
+ *
  * Requires: header_valid == true
- * 
+ *
  * @param ctx Reader context with valid header
  * @return CD_READ_OK on success, error code otherwise
- * 
+ *
  * @traceability SRS-001-BUNDLE Section 6.2
  */
 cd_read_result_t cd_reader_parse_toc(cd_reader_ctx_t *ctx);
 
 /**
  * Parse footer.
- * 
+ *
  * Requires: header_valid == true, toc_valid == true
- * 
+ *
  * @param ctx Reader context with valid header and TOC
  * @return CD_READ_OK on success, error code otherwise
- * 
+ *
  * @traceability SRS-001-BUNDLE Section 6.3
  */
 cd_read_result_t cd_reader_parse_footer(cd_reader_ctx_t *ctx);
 
 /**
  * Find entry by path (binary search).
- * 
+ *
  * Requires: toc_valid == true
- * 
+ *
  * @param ctx   Reader context with valid TOC
  * @param path  Normalized path to search for
  * @param entry Output: pointer to found entry
  * @return CD_READ_OK if found, CD_READ_ERR_PATH_NOT_FOUND otherwise
- * 
+ *
  * @traceability FR-BUN-02
  */
 cd_read_result_t cd_reader_find_entry(const cd_reader_ctx_t *ctx,
@@ -283,13 +283,13 @@ cd_read_result_t cd_reader_find_entry(const cd_reader_ctx_t *ctx,
 
 /**
  * Get pointer to file data (zero-copy).
- * 
+ *
  * @param ctx   Reader context
  * @param entry TOC entry for the file
  * @param data  Output: pointer to file data
  * @param len   Output: file length in bytes
  * @return CD_READ_OK on success, error code otherwise
- * 
+ *
  * @traceability NFR-BUN-01
  */
 cd_read_result_t cd_reader_get_data(const cd_reader_ctx_t *ctx,
@@ -298,19 +298,19 @@ cd_read_result_t cd_reader_get_data(const cd_reader_ctx_t *ctx,
 
 /**
  * Verify TOC is sorted.
- * 
+ *
  * Requires: toc_valid == true
- * 
+ *
  * @param ctx Reader context with valid TOC
  * @return CD_READ_OK if sorted, CD_READ_ERR_TOC_UNSORTED otherwise
- * 
+ *
  * @traceability FR-BUN-02
  */
 cd_read_result_t cd_reader_verify_toc_order(const cd_reader_ctx_t *ctx);
 
 /**
  * Get fault flags from reader.
- * 
+ *
  * @param ctx Reader context
  * @return Pointer to fault flags, or NULL if ctx is NULL
  */
@@ -318,7 +318,7 @@ const cd_fault_flags_t *cd_reader_get_faults(const cd_reader_ctx_t *ctx);
 
 /*============================================================================
  * Little-Endian Utilities (FR-BUN-04)
- * 
+ *
  * All multi-byte integers in CBF v1 format are stored little-endian
  * for cross-platform determinism.
  *============================================================================*/

@@ -104,41 +104,41 @@ typedef struct {
     /* State machine */
     cdl_state_t state;
     cdl_result_t last_error;
-    
+
     /* Device binding */
     cd_target_t device_target;
     bool device_target_set;
-    
+
     /* Bundle reader (zero-copy into mmap'd buffer) */
     cd_reader_ctx_t reader;
-    
+
     /* Parsed manifest */
     cd_manifest_t manifest;
     bool manifest_valid;
-    
+
     /* Expected hashes (from manifest) */
     cd_hash_t expected_weights_hash;    /**< H_W from manifest */
     cd_hash_t expected_inference_hash;  /**< H_I from manifest */
     cd_hash_t expected_certs_hash;      /**< H_C from manifest */
-    
+
     /* Measured hashes (computed during JIT load) */
     cd_hash_t measured_manifest_hash;   /**< H_M computed */
     cd_hash_t measured_weights_hash;    /**< H_W' computed */
     cd_hash_t measured_inference_hash;  /**< H_I' computed */
-    
+
     /* Streaming hash contexts */
     cd_sha256_ctx_t weights_hash_ctx;
     cd_sha256_ctx_t inference_hash_ctx;
     uint64_t weights_bytes_remaining;
     uint64_t inference_bytes_remaining;
-    
+
     /* Certificate chain (parsed from bundle) */
     cd_cert_chain_t cert_chain;
     bool cert_chain_valid;
-    
+
     /* Attestation (rebuilt for verification) */
     cd_attestation_t attestation;
-    
+
     /* Fault flags */
     cd_fault_flags_t faults;
 } cd_load_ctx_t;

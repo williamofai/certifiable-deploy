@@ -377,7 +377,7 @@ typedef struct {
     /* Overall result */
     uint8_t passed;               /**< 1 if all checks pass */
     cd_verify_reason_t reason;    /**< First failure reason */
-    
+
     /* Individual check results */
     uint8_t header_ok;            /**< CBF header valid */
     uint8_t toc_ok;               /**< TOC valid and sorted */
@@ -390,7 +390,7 @@ typedef struct {
     uint8_t target_ok;            /**< Target tuples match */
     uint8_t signature_ok;         /**< Signature valid (if signed) */
     uint8_t canonical_ok;         /**< Manifest is JCS-canonical */
-    
+
     /* Computed values (for debugging/auditing) */
     cd_hash_t computed_merkle_root;
     cd_hash_t expected_merkle_root;

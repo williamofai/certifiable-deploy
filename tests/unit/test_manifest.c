@@ -2,7 +2,7 @@
  * @file test_manifest.c
  * @brief Comprehensive test suite for manifest module
  * @traceability SRS-004-MANIFEST §8
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  */
 
@@ -256,41 +256,41 @@ static int test_conversions(void) {
 
 int main(void) {
     printf("=== Manifest Module Tests (SRS-004-MANIFEST) ===\n\n");
-    
+
     printf("--- JCS Primitives (T-MAN-01) ---\n");
     RUN_TEST(test_jcs_string_basic);
     RUN_TEST(test_jcs_string_escapes);
     RUN_TEST(test_jcs_uint_basic);
     RUN_TEST(test_jcs_hash_basic);
-    
+
     printf("\n--- Field Validation (T-MAN-03/04/05) ---\n");
     RUN_TEST(test_field_validation_valid);
     RUN_TEST(test_field_validation_invalid_chars);
     RUN_TEST(test_field_validation_oversized);
-    
+
     printf("\n--- Target Validation ---\n");
     RUN_TEST(test_target_valid);
     RUN_TEST(test_target_invalid);
-    
+
     printf("\n--- Builder ---\n");
     RUN_TEST(test_builder_init);
     RUN_TEST(test_builder_mode);
     RUN_TEST(test_builder_timestamp);
     RUN_TEST(test_builder_full_workflow);
-    
+
     printf("\n--- JCS Output (T-MAN-01/02) ---\n");
     RUN_TEST(test_jcs_key_ordering);
-    
+
     printf("\n--- Parser (T-MAN-06/07/10/11) ---\n");
     RUN_TEST(test_parser_valid);
     RUN_TEST(test_parser_invalid_hex);
     RUN_TEST(test_parser_invalid_version);
     RUN_TEST(test_parser_non_canonical);
     RUN_TEST(test_roundtrip);
-    
+
     printf("\n--- Conversions ---\n");
     RUN_TEST(test_conversions);
-    
+
     printf("\n=== Summary ===\n");
     printf("Tests: %d | Passed: %d | Failed: %d\n", tests_run, tests_passed, tests_failed);
     return tests_failed > 0 ? 1 : 0;

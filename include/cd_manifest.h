@@ -70,13 +70,13 @@ extern "C" {
  */
 typedef enum {
     CDM_OK = 0,                     /**< Success */
-    
+
     /* Input validation errors (1-19) */
     CDM_ERR_NULL = 1,               /**< NULL pointer argument */
     CDM_ERR_STATE = 2,              /**< Invalid builder state */
     CDM_ERR_MISSING_FIELD = 3,      /**< Required field not set */
     CDM_ERR_BUFFER_TOO_SMALL = 4,   /**< Output buffer insufficient */
-    
+
     /* Target validation errors (20-29) - FR-MAN-02 */
     CDM_ERR_INVALID_ARCH = 20,      /**< Unknown architecture */
     CDM_ERR_INVALID_VENDOR = 21,    /**< Vendor field validation failed */
@@ -85,14 +85,14 @@ typedef enum {
     CDM_ERR_INVALID_TARGET = 24,    /**< General target error */
     CDM_ERR_FIELD_TOO_LONG = 25,    /**< Field exceeds maximum length */
     CDM_ERR_INVALID_CHAR = 26,      /**< Invalid character in field */
-    
+
     /* Mode/timestamp errors (30-39) - FR-MAN-04 */
     CDM_ERR_INVALID_MODE = 30,      /**< Mode not "deterministic" or "audit" */
     CDM_ERR_INVALID_TIMESTAMP = 31, /**< Timestamp out of bounds */
-    
+
     /* Hash/digest errors (40-49) - FR-MAN-03 */
     CDM_ERR_INVALID_DIGEST = 40,    /**< Digest not valid hex */
-    
+
     /* Parse errors (50-69) - FR-MAN-06 */
     CDM_ERR_PARSE_FAILED = 50,      /**< JSON parse error */
     CDM_ERR_INVALID_VERSION = 51,   /**< Unsupported manifest version */
@@ -101,7 +101,7 @@ typedef enum {
     CDM_ERR_DUPLICATE_KEY = 54,     /**< Duplicate key in JSON */
     CDM_ERR_INVALID_TYPE = 55,      /**< Wrong JSON value type */
     CDM_ERR_ADDITIONAL_PROPS = 56,  /**< additionalProperties violation */
-    
+
     /* JCS errors (70-79) - FR-MAN-01 */
     CDM_ERR_JCS_OVERFLOW = 70,      /**< Number too large for canonical form */
     CDM_ERR_JCS_INVALID_STRING = 71 /**< String cannot be canonicalized */
@@ -140,10 +140,10 @@ typedef enum {
 typedef struct {
     /* State machine */
     cdm_builder_state_t state;
-    
+
     /* Manifest data */
     cd_manifest_t manifest;
-    
+
     /* Field presence flags */
     bool mode_set;
     bool timestamp_set;
@@ -151,7 +151,7 @@ typedef struct {
     bool weights_set;
     bool certs_set;
     bool inference_set;
-    
+
     /* Fault tracking */
     cd_fault_flags_t faults;
 } cdm_builder_t;

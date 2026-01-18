@@ -2,7 +2,7 @@
  * @file test_bundle.c
  * @brief Unit tests for bundle module (CBF v1 builder/reader)
  * @traceability SRS-001-BUNDLE Section 8
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */
@@ -166,7 +166,7 @@ TEST(test_u32_le)
     ASSERT_EQ(buf[2], 0x34);
     ASSERT_EQ(buf[3], 0x12);
     ASSERT_EQ(cd_read_u32_le(buf), 0x12345678U);
-    
+
     /* Verify magic constant encoding */
     cd_write_u32_le(buf, CD_CBF_MAGIC_HEADER);
     ASSERT_EQ(buf[0], '1');
@@ -309,9 +309,9 @@ TEST(test_builder_finalize_with_signature)
     cd_hash_t root = {{0xAA, 0xBB, 0xCC, 0xDD}};
     uint8_t signature[64];
     uint8_t data[] = "payload";
-    
+
     memset(signature, 0x55, sizeof(signature));
-    
+
     ASSERT(fp != NULL);
     ASSERT_EQ(cd_builder_init(&ctx, fp), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&ctx, "test.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
@@ -341,21 +341,21 @@ TEST(test_builder_state_machine)
     cd_hash_t h = {{0}};
     cd_hash_t root = {{0xAA}};
     uint8_t data[] = "test";
-    
+
     ASSERT(fp != NULL);
     ASSERT_EQ(cd_builder_init(&ctx, fp), CD_BUNDLE_OK);
     ASSERT_EQ(ctx.state, CD_BUILD_STATE_WRITING);
-    
+
     ASSERT_EQ(cd_builder_add_file(&ctx, "test.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_finalize(&ctx, &root, false, NULL), CD_BUNDLE_OK);
     ASSERT_EQ(ctx.state, CD_BUILD_STATE_FINALIZED);
-    
+
     /* Cannot add file after finalize */
     ASSERT_EQ(cd_builder_add_file(&ctx, "late.bin", data, sizeof(data), &h), CD_BUNDLE_ERR_STATE);
-    
+
     /* Cannot finalize twice */
     ASSERT_EQ(cd_builder_finalize(&ctx, &root, false, NULL), CD_BUNDLE_ERR_STATE);
-    
+
     fclose(fp);
     return 1;
 }
@@ -379,16 +379,16 @@ TEST(test_full_build_read_cycle)
     const cd_toc_entry_t *entry;
     const uint8_t *data_ptr;
     uint64_t data_len;
-    
+
     fp = tmpfile();
     ASSERT(fp != NULL);
-    
+
     /* Build */
     ASSERT_EQ(cd_builder_init(&builder, fp), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&builder, "manifest.json", manifest, sizeof(manifest), &mh), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&builder, "weights.bin", weights, sizeof(weights), &wh), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_finalize(&builder, &root, false, NULL), CD_BUNDLE_OK);
-    
+
     /* Read back */
     fseek(fp, 0, SEEK_END);
     bundle_size = (size_t)ftell(fp);
@@ -397,41 +397,41 @@ TEST(test_full_build_read_cycle)
     ASSERT(bundle != NULL);
     ASSERT_EQ(fread(bundle, 1, bundle_size, fp), bundle_size);
     fclose(fp);
-    
+
     /* Parse */
     ASSERT_EQ(cd_reader_init(&reader, bundle, bundle_size), CD_READ_OK);
     ASSERT_EQ(cd_reader_parse_header(&reader), CD_READ_OK);
     ASSERT_EQ(reader.header.magic, CD_CBF_MAGIC_HEADER);
     ASSERT_EQ(reader.header.version, CD_CBF_VERSION);
     ASSERT(reader.header_valid);
-    
+
     ASSERT_EQ(cd_reader_parse_toc(&reader), CD_READ_OK);
     ASSERT_EQ(reader.toc_count, 2);
     ASSERT_STR_EQ(reader.toc[0].path, "manifest.json");
     ASSERT_STR_EQ(reader.toc[1].path, "weights.bin");
     ASSERT(reader.toc_valid);
-    
+
     ASSERT_EQ(cd_reader_parse_footer(&reader), CD_READ_OK);
     ASSERT_EQ(reader.footer.magic, CD_CBF_MAGIC_FOOTER);
     ASSERT_EQ(reader.footer.has_signature, false);
     ASSERT_EQ(memcmp(reader.footer.merkle_root.bytes, root.bytes, 4), 0);
     ASSERT(reader.footer_valid);
-    
+
     ASSERT_EQ(cd_reader_verify_toc_order(&reader), CD_READ_OK);
-    
+
     /* Find and read */
     ASSERT_EQ(cd_reader_find_entry(&reader, "manifest.json", &entry), CD_READ_OK);
     ASSERT_EQ(cd_reader_get_data(&reader, entry, &data_ptr, &data_len), CD_READ_OK);
     ASSERT_EQ(data_len, sizeof(manifest));
     ASSERT_EQ(memcmp(data_ptr, manifest, sizeof(manifest)), 0);
-    
+
     ASSERT_EQ(cd_reader_find_entry(&reader, "weights.bin", &entry), CD_READ_OK);
     ASSERT_EQ(cd_reader_get_data(&reader, entry, &data_ptr, &data_len), CD_READ_OK);
     ASSERT_EQ(data_len, sizeof(weights));
     ASSERT_EQ(memcmp(data_ptr, weights, sizeof(weights)), 0);
-    
+
     ASSERT_EQ(cd_reader_find_entry(&reader, "nonexistent", &entry), CD_READ_ERR_PATH_NOT_FOUND);
-    
+
     free(bundle);
     return 1;
 }
@@ -447,16 +447,16 @@ TEST(test_full_cycle_with_signature)
     uint8_t signature[64];
     uint8_t *bundle;
     size_t bundle_size;
-    
+
     memset(signature, 0x42, sizeof(signature));
-    
+
     fp = tmpfile();
     ASSERT(fp != NULL);
-    
+
     ASSERT_EQ(cd_builder_init(&builder, fp), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&builder, "data.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_finalize(&builder, &root, true, signature), CD_BUNDLE_OK);
-    
+
     fseek(fp, 0, SEEK_END);
     bundle_size = (size_t)ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -464,15 +464,15 @@ TEST(test_full_cycle_with_signature)
     ASSERT(bundle != NULL);
     ASSERT_EQ(fread(bundle, 1, bundle_size, fp), bundle_size);
     fclose(fp);
-    
+
     ASSERT_EQ(cd_reader_init(&reader, bundle, bundle_size), CD_READ_OK);
     ASSERT_EQ(cd_reader_parse_header(&reader), CD_READ_OK);
     ASSERT_EQ(cd_reader_parse_toc(&reader), CD_READ_OK);
     ASSERT_EQ(cd_reader_parse_footer(&reader), CD_READ_OK);
-    
+
     ASSERT_EQ(reader.footer.has_signature, true);
     ASSERT_EQ(memcmp(reader.footer.signature, signature, 64), 0);
-    
+
     free(bundle);
     return 1;
 }
@@ -518,17 +518,17 @@ TEST(test_reader_parse_order)
     cd_reader_ctx_t r;
     uint8_t data[64] = {0};
     ASSERT_EQ(cd_reader_init(&r, data, sizeof(data)), CD_READ_OK);
-    
+
     /* Cannot parse TOC without valid header */
     ASSERT_EQ(cd_reader_parse_toc(&r), CD_READ_ERR_NULL);
     ASSERT_EQ(r.faults.domain, 1);
-    
+
     /* Cannot parse footer without valid TOC */
     r.faults.domain = 0;
     r.header_valid = true;  /* Fake valid header */
     ASSERT_EQ(cd_reader_parse_footer(&r), CD_READ_ERR_NULL);
     ASSERT_EQ(r.faults.domain, 1);
-    
+
     return 1;
 }
 
@@ -576,19 +576,19 @@ TEST(test_little_endian_format)
 {
     /* FR-BUN-04: Little-endian encoding */
     uint8_t buf[8];
-    
+
     /* Magic numbers should encode as ASCII in little-endian */
     cd_write_u32_le(buf, CD_CBF_MAGIC_HEADER);
     ASSERT_EQ(buf[0], '1');
     ASSERT_EQ(buf[1], 'F');
     ASSERT_EQ(buf[2], 'B');
     ASSERT_EQ(buf[3], 'C');
-    
+
     cd_write_u32_le(buf, CD_CBF_MAGIC_FOOTER);
     ASSERT_EQ(buf[0], 'C');
     ASSERT_EQ(buf[1], 'B');
     ASSERT_EQ(buf[2], 'F');
-    ASSERT_EQ(buf[3], '1');  
+    ASSERT_EQ(buf[3], '1');
     return 1;
 }
 
@@ -603,26 +603,26 @@ TEST(test_builder_fault_flags)
     cd_hash_t h = {{0}};
     uint8_t data[] = "test";
     const cd_fault_flags_t *faults;
-    
+
     ASSERT(fp != NULL);
     ASSERT_EQ(cd_builder_init(&ctx, fp), CD_BUNDLE_OK);
-    
+
     faults = cd_builder_get_faults(&ctx);
     ASSERT(faults != NULL);
     ASSERT_EQ(faults->overflow, 0);
     ASSERT_EQ(faults->domain, 0);
     ASSERT_EQ(faults->io_error, 0);
-    
+
     /* Trigger domain fault */
     ASSERT_EQ(cd_builder_add_file(&ctx, "b.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&ctx, "a.bin", data, sizeof(data), &h), CD_BUNDLE_ERR_NOT_SORTED);
     ASSERT_EQ(faults->domain, 1);
-    
+
     fclose(fp);
-    
+
     /* NULL context */
     ASSERT(cd_builder_get_faults(NULL) == NULL);
-    
+
     return 1;
 }
 
@@ -631,20 +631,20 @@ TEST(test_reader_fault_flags)
     cd_reader_ctx_t ctx;
     uint8_t bad[64] = {0};
     const cd_fault_flags_t *faults;
-    
+
     ASSERT_EQ(cd_reader_init(&ctx, bad, sizeof(bad)), CD_READ_OK);
-    
+
     faults = cd_reader_get_faults(&ctx);
     ASSERT(faults != NULL);
     ASSERT_EQ(faults->parse_error, 0);
-    
+
     /* Trigger parse_error fault */
     ASSERT_EQ(cd_reader_parse_header(&ctx), CD_READ_ERR_MAGIC);
     ASSERT_EQ(faults->parse_error, 1);
-    
+
     /* NULL context */
     ASSERT(cd_reader_get_faults(NULL) == NULL);
-    
+
     return 1;
 }
 
@@ -658,7 +658,7 @@ int main(void)
     printf("==========================================================\n");
     printf("  Bundle Module Tests (SRS-001-BUNDLE)\n");
     printf("==========================================================\n\n");
-    
+
     printf("Path Normalization:\n");
     RUN_TEST(test_path_normalize_basic);
     RUN_TEST(test_path_normalize_backslash);
@@ -671,12 +671,12 @@ int main(void)
     RUN_TEST(test_path_normalize_null_args);
     RUN_TEST(test_path_compare);
     RUN_TEST(test_path_validate);
-    
+
     printf("\nLittle-Endian Encoding:\n");
     RUN_TEST(test_u32_le);
     RUN_TEST(test_u64_le);
     RUN_TEST(test_le_null_safety);
-    
+
     printf("\nBuilder:\n");
     RUN_TEST(test_builder_init);
     RUN_TEST(test_builder_null_args);
@@ -688,11 +688,11 @@ int main(void)
     RUN_TEST(test_builder_finalize_with_signature);
     RUN_TEST(test_builder_finalize_signature_null_error);
     RUN_TEST(test_builder_state_machine);
-    
+
     printf("\nFull Cycle:\n");
     RUN_TEST(test_full_build_read_cycle);
     RUN_TEST(test_full_cycle_with_signature);
-    
+
     printf("\nReader Errors:\n");
     RUN_TEST(test_reader_invalid_magic);
     RUN_TEST(test_reader_truncated);
@@ -700,19 +700,19 @@ int main(void)
     RUN_TEST(test_reader_parse_order);
     RUN_TEST(test_reader_verify_toc_order_empty);
     RUN_TEST(test_reader_verify_toc_order_single);
-    
+
     printf("\nFormat Compliance:\n");
     RUN_TEST(test_no_timestamps);
     RUN_TEST(test_mmap_layout);
     RUN_TEST(test_little_endian_format);
-    
+
     printf("\nFault Flags:\n");
     RUN_TEST(test_builder_fault_flags);
     RUN_TEST(test_reader_fault_flags);
-    
+
     printf("\n==========================================================\n");
     printf("  Results: %d/%d tests passed\n", tests_passed, tests_run);
     printf("==========================================================\n\n");
-    
+
     return (tests_passed == tests_run) ? 0 : 1;
 }

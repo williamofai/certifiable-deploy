@@ -2,7 +2,7 @@
  * @file test_attest.c
  * @brief Unit tests for Merkle tree and attestation
  * @traceability SRS-002-ATTEST §8, FR-ATT-01 through FR-ATT-04
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  */
 

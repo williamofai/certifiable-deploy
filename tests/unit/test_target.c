@@ -2,7 +2,7 @@
  * @file test_target.c
  * @brief Unit tests for target tuple parsing, encoding, and matching
  * @traceability SRS-003-TARGET
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  */
 

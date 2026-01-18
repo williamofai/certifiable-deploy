@@ -2,14 +2,14 @@
  * @file merkle.c
  * @brief 4-leaf Merkle tree construction per CD-MATH-001 §5.2
  * @traceability SRS-002-ATTEST §8, FR-ATT-01 through FR-ATT-04
- * 
+ *
  * Tree structure:
  *         R
  *        / \
  *       R1  R2
  *      / \  / \
  *     L_M L_W L_C L_I
- * 
+ *
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  * Licensed under GPL-3.0 or commercial license.
  */
@@ -40,10 +40,10 @@ static void compute_leaf(const char *tag, const cd_hash_t *content_hash,
 static void compute_node(const cd_hash_t *left, const cd_hash_t *right,
                          cd_hash_t *node_out, cd_fault_flags_t *faults) {
     uint8_t concat[CD_HASH_SIZE * 2];
-    
+
     memcpy(concat, left->bytes, CD_HASH_SIZE);
     memcpy(concat + CD_HASH_SIZE, right->bytes, CD_HASH_SIZE);
-    
+
     cd_domain_hash(CD_TAG_MERKLE_NODE, concat, sizeof(concat), node_out, faults);
 }
 

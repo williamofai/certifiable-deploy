@@ -104,7 +104,7 @@ typedef struct {
 /**
  * @brief Domain-separated hash context
  * @traceability CD-MATH-001 §1.2
- * 
+ *
  * Implements: DH(tag, payload) = H(tag || LE64(|payload|) || payload)
  */
 typedef struct {
@@ -158,7 +158,7 @@ typedef enum {
 /**
  * @brief Target platform specification
  * @traceability CD-MATH-001 §4.3
- * 
+ *
  * Implements: T = enc(arch, vendor, device, abi)
  */
 #define CD_VENDOR_MAX_LEN 32
@@ -173,7 +173,7 @@ typedef struct {
 
 /**
  * @brief Canonical target encoding size
- * 
+ *
  * Layout: arch(4) + vendor_len(2) + vendor + device_len(2) + device + abi(4)
  */
 #define CD_TARGET_ENCODED_MAX_SIZE (4 + 2 + CD_VENDOR_MAX_LEN + 2 + CD_DEVICE_MAX_LEN + 4)
@@ -220,9 +220,9 @@ typedef enum {
 /**
  * @brief Bundle manifest
  * @traceability CD-MATH-001 §3.1, SRS-004-MANIFEST
- * 
+ *
  * H_M = DH("CD:MANIFEST:v1", M)
- * 
+ *
  * Layout verified for 64-bit alignment:
  *   Offset 0:   model_id[64]
  *   Offset 64:  version_major (4)
@@ -249,20 +249,20 @@ typedef struct {
     uint32_t version_minor;               /**< Semantic version minor */
     uint32_t version_patch;               /**< Semantic version patch */
     uint32_t _pad0;                       /**< Explicit padding for 64-bit alignment */
-    
+
     /* Timestamp (explicit input, not ambient) */
     uint64_t created_timestamp;           /**< Unix timestamp (seconds) */
-    
+
     /* Target platform */
     cd_target_t target;
-    
+
     /* Data formats */
     cd_format_t weights_format;           /**< Weight encoding */
     cd_format_t activations_format;       /**< Activation encoding */
-    
+
     /* Mode */
     cd_mode_t mode;                       /**< Deterministic or audit */
-    
+
     /* Certificate presence flags */
     uint8_t has_quant_cert;
     uint8_t has_training_cert;
@@ -298,7 +298,7 @@ typedef struct {
 /**
  * @brief Complete certificate chain
  * @traceability CD-MATH-001 §3.4
- * 
+ *
  * H_C = H("CD:CERTSET:v1" || h_D || h_T || h_Q)
  * Order: [data, training, quant]
  */
@@ -322,7 +322,7 @@ typedef struct {
 /**
  * @brief Single file in inference set
  * @traceability CD-MATH-001 §4.2
- * 
+ *
  * h_i = DH("CD:FILE:v1", p_i || b_i)
  */
 #define CD_PATH_MAX_LEN 256
@@ -340,7 +340,7 @@ typedef struct {
 /**
  * @brief Complete inference artifact set
  * @traceability CD-MATH-001 §4.4
- * 
+ *
  * H_I = H("CD:INFERSET:v1" || T || (p_1, h_1) || ... || (p_n, h_n))
  */
 #define CD_MAX_INFERENCE_FILES 256
@@ -364,7 +364,7 @@ typedef struct {
 /**
  * @brief Weights metadata and hash
  * @traceability CD-MATH-001 §3.2
- * 
+ *
  * H_W = DH("CD:WEIGHTS:v1", W)
  */
 typedef struct {
@@ -387,7 +387,7 @@ typedef struct {
 /**
  * @brief Merkle tree leaves
  * @traceability CD-MATH-001 §5.2
- * 
+ *
  * L_M = DH("CD:LEAF:MANIFEST:v1", H_M)
  * L_W = DH("CD:LEAF:WEIGHTS:v1", H_W)
  * L_C = DH("CD:LEAF:CERTS:v1", H_C)
@@ -407,7 +407,7 @@ typedef struct {
 /**
  * @brief Complete Merkle tree
  * @traceability CD-MATH-001 §5.2
- * 
+ *
  * R_1 = Node(L_M, L_W)
  * R_2 = Node(L_C, L_I)
  * R = Node(R_1, R_2)
@@ -437,16 +437,16 @@ typedef struct {
     cd_hash_t weights_hash;       /**< H_W */
     cd_hash_t cert_chain_hash;    /**< H_C */
     cd_hash_t inference_hash;     /**< H_I */
-    
+
     /* Bundle root (flat hash) */
     cd_hash_t bundle_root;        /**< H_B = H("CD:BUNDLE:v1" || H_M || H_W || H_C || H_I) */
-    
+
     /* Merkle tree */
     cd_merkle_tree_t merkle;      /**< Full Merkle tree */
-    
+
     /* Timestamp */
     uint64_t timestamp;           /**< Signing timestamp */
-    
+
     /* Optional signature */
     uint8_t is_signed;            /**< 1 if signature present */
     uint8_t _pad0[7];             /**< Explicit padding */
@@ -546,12 +546,12 @@ typedef struct {
     cd_cert_chain_t certificates;
     cd_inference_set_t inference;
     cd_attestation_t attestation;
-    
+
     /* CBF container */
     cd_cbf_header_t header;
     cd_cbf_toc_t toc;
     cd_cbf_footer_t footer;
-    
+
     /* Validation state */
     uint8_t is_valid;             /**< 1 if verification passed */
     uint8_t _pad0[7];             /**< Explicit padding */
@@ -573,35 +573,35 @@ typedef struct {
  */
 typedef enum {
     CD_VERIFY_OK = 0,
-    
+
     /* Header/format errors (1-9) */
     CD_VERIFY_ERR_MAGIC = 1,
     CD_VERIFY_ERR_VERSION = 2,
     CD_VERIFY_ERR_TRUNCATED = 3,
-    
+
     /* Hash mismatches (10-19) */
     CD_VERIFY_ERR_MANIFEST_HASH = 10,
     CD_VERIFY_ERR_WEIGHTS_HASH = 11,
     CD_VERIFY_ERR_CERTCHAIN_HASH = 12,
     CD_VERIFY_ERR_INFERENCE_HASH = 13,
     CD_VERIFY_ERR_MERKLE_ROOT = 14,
-    
+
     /* Chain consistency (20-29) */
     CD_VERIFY_ERR_WEIGHTS_CERT_MISMATCH = 20,
     CD_VERIFY_ERR_CHAIN_LINK_BROKEN = 21,
-    
+
     /* Target mismatch (30-39) */
     CD_VERIFY_ERR_TARGET_MISMATCH = 30,
-    
+
     /* Signature errors (40-49) */
     CD_VERIFY_ERR_SIGNATURE_INVALID = 40,
     CD_VERIFY_ERR_PUBKEY_UNKNOWN = 41,
-    
+
     /* Path/TOC errors (50-59) */
     CD_VERIFY_ERR_PATH_INVALID = 50,
     CD_VERIFY_ERR_TOC_UNSORTED = 51,
     CD_VERIFY_ERR_DUPLICATE_PATH = 52,
-    
+
     /* Manifest errors (60-69) */
     CD_VERIFY_ERR_MANIFEST_SCHEMA = 60,
     CD_VERIFY_ERR_MANIFEST_NON_CANONICAL = 61,
@@ -665,23 +665,23 @@ typedef enum {
 /**
  * @brief Runtime loader context
  * @traceability CD-MATH-001 §8
- * 
+ *
  * Implements JIT hashing: H_I^measured, H_W^measured
  */
 typedef struct {
     cd_load_state_t state;
     cd_verify_reason_t failure_reason;
-    
+
     /* Expected values (from bundle) */
     cd_hash_t expected_weights_hash;
     cd_hash_t expected_inference_hash;
     cd_target_t expected_target;
-    
+
     /* Measured values (computed during load) */
     cd_hash_t measured_weights_hash;
     cd_hash_t measured_inference_hash;
     cd_target_t device_target;
-    
+
     /* Streaming hash contexts */
     cd_domain_hash_ctx_t weights_hash_ctx;
     cd_domain_hash_ctx_t inference_hash_ctx;
@@ -711,7 +711,7 @@ typedef struct {
 } cd_fault_flags_t;
 
 static inline uint8_t cd_has_fault(const cd_fault_flags_t *f) {
-    return f->overflow || f->underflow || f->div_zero || 
+    return f->overflow || f->underflow || f->div_zero ||
            f->domain || f->io_error || f->hash_error || f->parse_error;
 }
 ```
@@ -750,32 +750,32 @@ typedef enum {
 typedef struct {
     cd_manifest_t manifest;
     cd_target_t target;
-    
+
     /* Component buffers (caller-provided) */
     const uint8_t *weights_data;
     uint64_t weights_size;
-    
+
     const uint8_t *quant_cert_data;
     uint64_t quant_cert_size;
-    
+
     const uint8_t *training_cert_data;
     uint64_t training_cert_size;
-    
+
     const uint8_t *data_cert_data;
     uint64_t data_cert_size;
-    
+
     /* Inference files (caller-provided) */
     uint32_t inference_file_count;
     uint32_t _pad0;               /**< Explicit padding */
     const char **inference_paths;
     const uint8_t **inference_data;
     const uint64_t *inference_sizes;
-    
+
     /* Signing (optional) */
     uint8_t sign_bundle;
     uint8_t _pad1[7];             /**< Explicit padding */
     const uint8_t *private_key;   /**< Ed25519 private key (64 bytes) */
-    
+
     /* Computed state */
     cd_attestation_t attestation;
     uint8_t attestation_computed;

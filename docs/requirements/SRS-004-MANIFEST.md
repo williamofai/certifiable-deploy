@@ -281,7 +281,7 @@ int cdm_finalize_jcs(cdm_builder_t *ctx, uint8_t *out, size_t *out_len);
 /**
  * @brief Parse manifest from JSON bytes
  * @traceability FR-MAN-06
- * 
+ *
  * Performs:
  * - Schema validation
  * - Regex validation

@@ -417,10 +417,10 @@ Compute:
   L_W = DH("CD:LEAF:WEIGHTS:v1", H_W)
   L_C = DH("CD:LEAF:CERTS:v1", H_C)
   L_I = DH("CD:LEAF:INFER:v1", H_I)
-  
+
   R_1 = DH("CD:MERKLENODE:v1", L_M || L_W)
   R_2 = DH("CD:MERKLENODE:v1", L_C || L_I)
-  
+
   R = DH("CD:MERKLENODE:v1", R_1 || R_2)
 
 Expected R: (to be computed during implementation)

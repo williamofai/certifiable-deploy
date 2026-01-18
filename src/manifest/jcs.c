@@ -49,51 +49,51 @@ cdm_result_t cdm_validate_field(const char *field, size_t max_len)
     size_t len;
     size_t i;
     char c;
-    
+
     if (field == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     len = strlen(field);
-    
+
     /* Must be non-empty */
     if (len == 0) {
         return CDM_ERR_INVALID_CHAR;
     }
-    
+
     /* Check length limit */
     if (len > max_len) {
         return CDM_ERR_FIELD_TOO_LONG;
     }
-    
+
     /* Validate each character: ^[a-z0-9\-_]+$ */
     for (i = 0; i < len; i++) {
         c = field[i];
-        
+
         /* Lowercase letters */
         if (c >= 'a' && c <= 'z') {
             continue;
         }
-        
+
         /* Digits */
         if (c >= '0' && c <= '9') {
             continue;
         }
-        
+
         /* Hyphen */
         if (c == '-') {
             continue;
         }
-        
+
         /* Underscore */
         if (c == '_') {
             continue;
         }
-        
+
         /* Any other character is invalid */
         return CDM_ERR_INVALID_CHAR;
     }
-    
+
     return CDM_OK;
 }
 
@@ -123,24 +123,24 @@ cdm_result_t cdm_jcs_write_string(uint8_t *out, size_t *out_len, const char *str
     size_t i;
     size_t len;
     unsigned char c;
-    
+
     if (out == NULL || out_len == NULL || str == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     capacity = *out_len;
     len = strlen(str);
-    
+
     /* Opening quote */
     if (pos >= capacity) {
         return CDM_ERR_BUFFER_TOO_SMALL;
     }
     out[pos++] = '"';
-    
+
     /* Process each character */
     for (i = 0; i < len; i++) {
         c = (unsigned char)str[i];
-        
+
         /* Check for special escapes */
         switch (c) {
             case '"':
@@ -148,31 +148,31 @@ cdm_result_t cdm_jcs_write_string(uint8_t *out, size_t *out_len, const char *str
                 out[pos++] = '\\';
                 out[pos++] = '"';
                 break;
-                
+
             case '\\':
                 if (pos + 2 > capacity) return CDM_ERR_BUFFER_TOO_SMALL;
                 out[pos++] = '\\';
                 out[pos++] = '\\';
                 break;
-                
+
             case '\n':
                 if (pos + 2 > capacity) return CDM_ERR_BUFFER_TOO_SMALL;
                 out[pos++] = '\\';
                 out[pos++] = 'n';
                 break;
-                
+
             case '\r':
                 if (pos + 2 > capacity) return CDM_ERR_BUFFER_TOO_SMALL;
                 out[pos++] = '\\';
                 out[pos++] = 'r';
                 break;
-                
+
             case '\t':
                 if (pos + 2 > capacity) return CDM_ERR_BUFFER_TOO_SMALL;
                 out[pos++] = '\\';
                 out[pos++] = 't';
                 break;
-                
+
             default:
                 /* Control characters (0x00-0x1F except those above) */
                 if (c < 0x20) {
@@ -205,13 +205,13 @@ cdm_result_t cdm_jcs_write_string(uint8_t *out, size_t *out_len, const char *str
                 break;
         }
     }
-    
+
     /* Closing quote */
     if (pos >= capacity) {
         return CDM_ERR_BUFFER_TOO_SMALL;
     }
     out[pos++] = '"';
-    
+
     *out_len = pos;
     return CDM_OK;
 }
@@ -240,13 +240,13 @@ cdm_result_t cdm_jcs_write_uint(uint8_t *out, size_t *out_len, uint64_t value)
     size_t i = 0;
     size_t len;
     uint64_t v;
-    
+
     if (out == NULL || out_len == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     capacity = *out_len;
-    
+
     /* Special case: zero */
     if (value == 0) {
         if (capacity < 1) {
@@ -256,7 +256,7 @@ cdm_result_t cdm_jcs_write_uint(uint8_t *out, size_t *out_len, uint64_t value)
         *out_len = 1;
         return CDM_OK;
     }
-    
+
     /* Build digits in reverse */
     v = value;
     while (v > 0 && i < sizeof(buf) - 1) {
@@ -264,17 +264,17 @@ cdm_result_t cdm_jcs_write_uint(uint8_t *out, size_t *out_len, uint64_t value)
         v /= 10;
     }
     len = i;
-    
+
     /* Check buffer capacity */
     if (len > capacity) {
         return CDM_ERR_BUFFER_TOO_SMALL;
     }
-    
+
     /* Reverse into output buffer */
     for (i = 0; i < len; i++) {
         out[i] = (uint8_t)buf[len - 1 - i];
     }
-    
+
     *out_len = len;
     return CDM_OK;
 }
@@ -296,30 +296,30 @@ cdm_result_t cdm_jcs_write_hash(uint8_t *out, size_t *out_len, const cd_hash_t *
     size_t capacity;
     size_t pos = 0;
     size_t i;
-    
+
     if (out == NULL || out_len == NULL || hash == NULL) {
         return CDM_ERR_NULL;
     }
-    
+
     capacity = *out_len;
-    
+
     /* Need: 1 quote + 64 hex chars + 1 quote = 66 bytes */
     if (capacity < 66) {
         return CDM_ERR_BUFFER_TOO_SMALL;
     }
-    
+
     /* Opening quote */
     out[pos++] = '"';
-    
+
     /* Convert each byte to two hex characters */
     for (i = 0; i < CD_HASH_SIZE; i++) {
         out[pos++] = (uint8_t)hex[(hash->bytes[i] >> 4) & 0x0F];
         out[pos++] = (uint8_t)hex[hash->bytes[i] & 0x0F];
     }
-    
+
     /* Closing quote */
     out[pos++] = '"';
-    
+
     *out_len = pos;
     return CDM_OK;
 }
@@ -347,30 +347,30 @@ static const struct {
 const char *cdm_arch_to_string(cd_architecture_t arch)
 {
     size_t i;
-    
+
     for (i = 0; i < ARCH_TABLE_SIZE; i++) {
         if (arch_table[i].arch == arch) {
             return arch_table[i].str;
         }
     }
-    
+
     return NULL;
 }
 
 cd_architecture_t cdm_string_to_arch(const char *str)
 {
     size_t i;
-    
+
     if (str == NULL) {
         return CD_ARCH_UNKNOWN;
     }
-    
+
     for (i = 0; i < ARCH_TABLE_SIZE; i++) {
         if (strcmp(arch_table[i].str, str) == 0) {
             return arch_table[i].arch;
         }
     }
-    
+
     return CD_ARCH_UNKNOWN;
 }
 
@@ -398,30 +398,30 @@ static const struct {
 const char *cdm_abi_to_string(cd_abi_t abi)
 {
     size_t i;
-    
+
     for (i = 0; i < ABI_TABLE_SIZE; i++) {
         if (abi_table[i].abi == abi) {
             return abi_table[i].str;
         }
     }
-    
+
     return NULL;
 }
 
 cd_abi_t cdm_string_to_abi(const char *str)
 {
     size_t i;
-    
+
     if (str == NULL) {
         return CD_ABI_UNKNOWN;
     }
-    
+
     for (i = 0; i < ABI_TABLE_SIZE; i++) {
         if (strcmp(abi_table[i].str, str) == 0) {
             return abi_table[i].abi;
         }
     }
-    
+
     return CD_ABI_UNKNOWN;
 }
 

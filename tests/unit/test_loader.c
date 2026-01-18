@@ -96,7 +96,7 @@ typedef struct {
     uint8_t *data;
     size_t len;
     size_t capacity;
-    
+
     /* Computed hashes for verification */
     cd_hash_t h_manifest;
     cd_hash_t h_weights;
@@ -154,33 +154,33 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
     size_t manifest_len;
     cd_fault_flags_t faults = {0};
     cd_attestation_t attest;
-    
+
     /* File offsets and sizes */
     uint64_t payload_offset;
     uint64_t manifest_offset, weights_offset, inference_offset;
     uint64_t toc_offset;
-    
+
     /* Allocate bundle buffer */
     bundle->capacity = 16384;
     bundle->data = (uint8_t *)malloc(bundle->capacity);
     if (!bundle->data) return -1;
     bundle->len = 0;
-    
+
     /*
      * Step 1: Compute component hashes
      */
-    
+
     /* H_W = DH("CD:WEIGHTS:v1", weights_data) */
     cd_domain_hash(CD_TAG_WEIGHTS, TEST_WEIGHTS, TEST_WEIGHTS_SIZE,
                    &bundle->h_weights, &faults);
-    
+
     /* H_I = DH("CD:INFERSET:v1", kernel_data) */
     cd_domain_hash(CD_TAG_INFERSET, TEST_KERNEL, TEST_KERNEL_SIZE,
                    &bundle->h_inference, &faults);
-    
+
     /* H_C = zero hash (no certs in test) */
     cd_hash_zero(&bundle->h_certs);
-    
+
     /*
      * Step 2: Build manifest JSON
      */
@@ -191,17 +191,17 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
     cdm_set_weights_hash(&builder, &bundle->h_weights);
     cdm_set_certs_hash(&builder, &bundle->h_certs);
     cdm_set_inference_hash(&builder, &bundle->h_inference);
-    
+
     manifest_len = sizeof(manifest_json);
     if (cdm_finalize_jcs(&builder, manifest_json, &manifest_len) != CDM_OK) {
         free(bundle->data);
         return -1;
     }
-    
+
     /* H_M = DH("CD:MANIFEST:v1", manifest_json) */
     cd_domain_hash(CD_TAG_MANIFEST, manifest_json, manifest_len,
                    &bundle->h_manifest, &faults);
-    
+
     /*
      * Step 3: Compute Merkle root
      */
@@ -213,7 +213,7 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
                        &bundle->h_inference,
                        &faults);
     cda_get_root(&attest, &bundle->merkle_root);
-    
+
     /*
      * Step 4: Build CBF structure
      *
@@ -223,35 +223,35 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
      *   [...]       TOC
      *   [...]       Footer
      */
-    
+
     /* Reserve header space */
     bundle->len = 32;
     payload_offset = 32;
-    
+
     /* Write manifest payload */
     manifest_offset = bundle->len;
     if (mock_append(bundle, manifest_json, manifest_len) != 0) {
         free(bundle->data);
         return -1;
     }
-    
+
     /* Write weights payload */
     weights_offset = bundle->len;
     if (mock_append(bundle, TEST_WEIGHTS, TEST_WEIGHTS_SIZE) != 0) {
         free(bundle->data);
         return -1;
     }
-    
+
     /* Write inference payload */
     inference_offset = bundle->len;
     if (mock_append(bundle, TEST_KERNEL, TEST_KERNEL_SIZE) != 0) {
         free(bundle->data);
         return -1;
     }
-    
+
     /* Record TOC offset */
     toc_offset = bundle->len;
-    
+
     /*
      * Step 5: Write TOC
      *
@@ -267,7 +267,7 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
             return -1;
         }
     }
-    
+
     /* TOC entries must be sorted by path */
     /* Entry 1: inference/kernel.bin */
     {
@@ -284,7 +284,7 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
             return -1;
         }
     }
-    
+
     /* Entry 2: manifest.json */
     {
         uint8_t entry[304];
@@ -300,7 +300,7 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
             return -1;
         }
     }
-    
+
     /* Entry 3: weights.bin */
     {
         uint8_t entry[304];
@@ -316,7 +316,7 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
             return -1;
         }
     }
-    
+
     /*
      * Step 6: Write Footer
      *
@@ -334,7 +334,7 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
             return -1;
         }
     }
-    
+
     /*
      * Step 7: Write Header (backfill)
      */
@@ -348,7 +348,7 @@ static int build_mock_bundle(mock_bundle_t *bundle, const cd_target_t *target)
         write_u64_le(header + 24, toc_offset);
         memcpy(bundle->data, header, 32);
     }
-    
+
     return 0;
 }
 
@@ -376,14 +376,14 @@ TEST(init_state)
 {
     cd_load_ctx_t ctx;
     cd_target_t device;
-    
+
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
-    
+
     ASSERT_EQ(cdl_init(&ctx, &device), CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_INIT);
     ASSERT(!cdl_is_enabled(&ctx));
     ASSERT(!cdl_is_failed(&ctx));
-    
+
     return 0;
 }
 
@@ -402,10 +402,10 @@ TEST(init_null)
 TEST(init_no_device)
 {
     cd_load_ctx_t ctx;
-    
+
     ASSERT_EQ(cdl_init(&ctx, NULL), CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_INIT);
-    
+
     return 0;
 }
 
@@ -416,14 +416,14 @@ TEST(open_null_data)
 {
     cd_load_ctx_t ctx;
     cd_target_t device;
-    
+
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdl_init(&ctx, &device);
-    
+
     ASSERT_EQ(cdl_open_bundle(&ctx, NULL, 0), CDL_ERR_NULL);
     ASSERT(cdl_is_failed(&ctx));
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_FAILED);
-    
+
     return 0;
 }
 
@@ -435,18 +435,18 @@ TEST(failed_terminal)
     cd_load_ctx_t ctx;
     cd_target_t device;
     uint8_t dummy[32] = {0};
-    
+
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdl_init(&ctx, &device);
-    
+
     /* Force to failed state */
     cdl_open_bundle(&ctx, NULL, 0);
     ASSERT(cdl_is_failed(&ctx));
-    
+
     /* Subsequent operations should fail */
     ASSERT(cdl_open_bundle(&ctx, dummy, sizeof(dummy)) != CDL_OK);
     ASSERT(cdl_is_failed(&ctx));
-    
+
     return 0;
 }
 
@@ -458,16 +458,16 @@ TEST(invalid_magic)
     cd_load_ctx_t ctx;
     cd_target_t device;
     uint8_t bad_bundle[64] = {0};
-    
+
     /* Write wrong magic */
     write_u32_le(bad_bundle, 0xDEADBEEF);
-    
+
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdl_init(&ctx, &device);
-    
+
     ASSERT_EQ(cdl_open_bundle(&ctx, bad_bundle, sizeof(bad_bundle)), CDL_ERR_MAGIC);
     ASSERT(cdl_is_failed(&ctx));
-    
+
     return 0;
 }
 
@@ -480,23 +480,23 @@ TEST(target_match_exact)
     cd_target_t device;
     mock_bundle_t bundle = {0};
     cd_target_t bundle_target;
-    
+
     /* Bundle and device have same target */
     cdt_set(&bundle_target, CD_ARCH_X86_64, "intel", "xeon", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_X86_64, "intel", "xeon", CD_ABI_SYSV);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     cdl_init(&ctx, &device);
     cdl_result_t r = cdl_open_bundle(&ctx, bundle.data, bundle.len);
-    
+
     free_mock_bundle(&bundle);
-    
+
     ASSERT_EQ(r, CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_MANIFEST_VERIFIED);
-    
+
     return 0;
 }
 
@@ -509,23 +509,23 @@ TEST(target_match_wildcard)
     cd_target_t device;
     mock_bundle_t bundle = {0};
     cd_target_t bundle_target;
-    
+
     /* Bundle has generic vendor/device */
     cdt_set(&bundle_target, CD_ARCH_X86_64, "generic", "generic", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_X86_64, "intel", "xeon", CD_ABI_SYSV);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     cdl_init(&ctx, &device);
     cdl_result_t r = cdl_open_bundle(&ctx, bundle.data, bundle.len);
-    
+
     free_mock_bundle(&bundle);
-    
+
     ASSERT_EQ(r, CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_MANIFEST_VERIFIED);
-    
+
     return 0;
 }
 
@@ -538,23 +538,23 @@ TEST(target_arch_mismatch)
     cd_target_t device;
     mock_bundle_t bundle = {0};
     cd_target_t bundle_target;
-    
+
     /* Bundle is x86_64, device is aarch64 */
     cdt_set(&bundle_target, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_AARCH64, "generic", "cpu", CD_ABI_LP64);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     cdl_init(&ctx, &device);
     cdl_result_t r = cdl_open_bundle(&ctx, bundle.data, bundle.len);
-    
+
     free_mock_bundle(&bundle);
-    
+
     ASSERT_EQ(r, CDL_ERR_TARGET_MISMATCH);
     ASSERT(cdl_is_failed(&ctx));
-    
+
     return 0;
 }
 
@@ -567,23 +567,23 @@ TEST(target_abi_mismatch)
     cd_target_t device;
     mock_bundle_t bundle = {0};
     cd_target_t bundle_target;
-    
+
     /* Same arch but different ABI */
     cdt_set(&bundle_target, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_LINUX_GNU);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     cdl_init(&ctx, &device);
     cdl_result_t r = cdl_open_bundle(&ctx, bundle.data, bundle.len);
-    
+
     free_mock_bundle(&bundle);
-    
+
     ASSERT_EQ(r, CDL_ERR_TARGET_MISMATCH);
     ASSERT(cdl_is_failed(&ctx));
-    
+
     return 0;
 }
 
@@ -598,26 +598,26 @@ TEST(weights_load_ok)
     cd_target_t bundle_target;
     uint8_t weights_buf[TEST_WEIGHTS_SIZE];
     uint64_t weights_size;
-    
+
     cdt_set(&bundle_target, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     cdl_init(&ctx, &device);
     ASSERT_EQ(cdl_open_bundle(&ctx, bundle.data, bundle.len), CDL_OK);
-    
+
     ASSERT_EQ(cdl_get_weights_size(&ctx, &weights_size), CDL_OK);
     ASSERT_EQ(weights_size, TEST_WEIGHTS_SIZE);
-    
+
     ASSERT_EQ(cdl_load_weights(&ctx, weights_buf, sizeof(weights_buf)), CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_WEIGHTS_VERIFIED);
-    
+
     /* Verify data was copied correctly */
     ASSERT(memcmp(weights_buf, TEST_WEIGHTS, TEST_WEIGHTS_SIZE) == 0);
-    
+
     free_mock_bundle(&bundle);
     return 0;
 }
@@ -632,14 +632,14 @@ TEST(weights_tampered)
     mock_bundle_t bundle = {0};
     cd_target_t bundle_target;
     uint8_t weights_buf[TEST_WEIGHTS_SIZE];
-    
+
     cdt_set(&bundle_target, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     /* Tamper with weights in bundle (find and modify) */
     /* weights.bin starts at a known offset - flip a byte */
     size_t i;
@@ -649,17 +649,17 @@ TEST(weights_tampered)
             break;
         }
     }
-    
+
     cdl_init(&ctx, &device);
     ASSERT_EQ(cdl_open_bundle(&ctx, bundle.data, bundle.len), CDL_OK);
-    
+
     cdl_result_t r = cdl_load_weights(&ctx, weights_buf, sizeof(weights_buf));
-    
+
     free_mock_bundle(&bundle);
-    
+
     ASSERT_EQ(r, CDL_ERR_WEIGHTS_HASH);
     ASSERT(cdl_is_failed(&ctx));
-    
+
     return 0;
 }
 
@@ -674,33 +674,33 @@ TEST(full_load_enabled)
     cd_target_t bundle_target;
     uint8_t weights_buf[TEST_WEIGHTS_SIZE];
     uint8_t kernel_buf[TEST_KERNEL_SIZE];
-    
+
     cdt_set(&bundle_target, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     cdl_init(&ctx, &device);
-    
+
     /* Step 1: Open bundle */
     ASSERT_EQ(cdl_open_bundle(&ctx, bundle.data, bundle.len), CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_MANIFEST_VERIFIED);
-    
+
     /* Step 2: Load weights */
     ASSERT_EQ(cdl_load_weights(&ctx, weights_buf, sizeof(weights_buf)), CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_WEIGHTS_VERIFIED);
-    
+
     /* Step 3: Load kernels */
     ASSERT_EQ(cdl_load_kernels(&ctx, kernel_buf, sizeof(kernel_buf)), CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_INFERENCE_VERIFIED);
-    
+
     /* Step 4: Finalize */
     ASSERT_EQ(cdl_finalize(&ctx), CDL_OK);
     ASSERT_EQ(cdl_get_state(&ctx), CDL_STATE_ENABLED);
     ASSERT(cdl_is_enabled(&ctx));
-    
+
     free_mock_bundle(&bundle);
     return 0;
 }
@@ -715,22 +715,22 @@ TEST(state_machine_order)
     mock_bundle_t bundle = {0};
     cd_target_t bundle_target;
     uint8_t weights_buf[TEST_WEIGHTS_SIZE];
-    
+
     cdt_set(&bundle_target, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_X86_64, "generic", "cpu", CD_ABI_SYSV);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     cdl_init(&ctx, &device);
-    
+
     /* Try to load weights before opening - should fail */
     ASSERT(cdl_load_weights(&ctx, weights_buf, sizeof(weights_buf)) != CDL_OK);
-    
+
     /* Context should be failed now */
     ASSERT(cdl_is_failed(&ctx));
-    
+
     free_mock_bundle(&bundle);
     return 0;
 }
@@ -745,10 +745,10 @@ TEST(error_strings)
     ASSERT(cdl_error_string(CDL_ERR_TARGET_MISMATCH) != NULL);
     ASSERT(cdl_error_string(CDL_ERR_WEIGHTS_HASH) != NULL);
     ASSERT(cdl_error_string(CDL_ERR_MERKLE_ROOT) != NULL);
-    
+
     /* Unknown error should still return something */
     ASSERT(cdl_error_string((cdl_result_t)-999) != NULL);
-    
+
     return 0;
 }
 
@@ -762,28 +762,28 @@ TEST(get_manifest)
     mock_bundle_t bundle = {0};
     cd_target_t bundle_target;
     const cd_manifest_t *manifest;
-    
+
     cdt_set(&bundle_target, CD_ARCH_X86_64, "testvendor", "testdevice", CD_ABI_SYSV);
     cdt_set(&device, CD_ARCH_X86_64, "testvendor", "testdevice", CD_ABI_SYSV);
-    
+
     if (build_mock_bundle(&bundle, &bundle_target) != 0) {
         return -1;
     }
-    
+
     cdl_init(&ctx, &device);
-    
+
     /* Before open, manifest should be NULL */
     ASSERT(cdl_get_manifest(&ctx) == NULL);
-    
+
     ASSERT_EQ(cdl_open_bundle(&ctx, bundle.data, bundle.len), CDL_OK);
-    
+
     /* After open, manifest should be valid */
     manifest = cdl_get_manifest(&ctx);
     ASSERT(manifest != NULL);
     ASSERT_EQ(manifest->manifest_version, 1);
     ASSERT(strcmp(manifest->mode, "deterministic") == 0);
     ASSERT(manifest->target.architecture == CD_ARCH_X86_64);
-    
+
     free_mock_bundle(&bundle);
     return 0;
 }
@@ -795,38 +795,38 @@ TEST(get_manifest)
 int main(void)
 {
     printf("\n=== Loader Module Tests (SRS-006-LOADER) ===\n\n");
-    
+
     printf("--- Initialization (T-LDR-01) ---\n");
     RUN_TEST(init_state);
     RUN_TEST(init_null);
     RUN_TEST(init_no_device);
-    
+
     printf("\n--- Error Handling (T-LDR-02/03) ---\n");
     RUN_TEST(open_null_data);
     RUN_TEST(failed_terminal);
     RUN_TEST(invalid_magic);
-    
+
     printf("\n--- Target Binding (T-LDR-04/05) ---\n");
     RUN_TEST(target_match_exact);
     RUN_TEST(target_match_wildcard);
     RUN_TEST(target_arch_mismatch);
     RUN_TEST(target_abi_mismatch);
-    
+
     printf("\n--- JIT Verification (T-LDR-06/07) ---\n");
     RUN_TEST(weights_load_ok);
     RUN_TEST(weights_tampered);
-    
+
     printf("\n--- Full Load Sequence (T-LDR-12) ---\n");
     RUN_TEST(full_load_enabled);
     RUN_TEST(state_machine_order);
-    
+
     printf("\n--- Utilities ---\n");
     RUN_TEST(error_strings);
     RUN_TEST(get_manifest);
-    
+
     printf("\n=== Summary ===\n");
     printf("Tests: %d | Passed: %d | Failed: %d\n\n",
            tests_run, tests_passed, tests_run - tests_passed);
-    
+
     return (tests_passed == tests_run) ? 0 : 1;
 }
