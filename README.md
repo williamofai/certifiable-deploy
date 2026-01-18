@@ -1,7 +1,7 @@
 # certifiable-deploy
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/williamofai/certifiable-deploy)
-[![Tests](https://img.shields.io/badge/tests-7%20suites%20passing-brightgreen)](https://github.com/williamofai/certifiable-deploy)
+[![Tests](https://img.shields.io/badge/tests-201%20passing-brightgreen)](https://github.com/williamofai/certifiable-deploy)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-x86%20%7C%20ARM%20%7C%20RISC--V-lightgrey)](https://github.com/williamofai/certifiable-deploy)
 
