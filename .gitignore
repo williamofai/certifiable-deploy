@@ -40,7 +40,6 @@ tests/unit/test_loader
 tests/unit/test_manifest
 
 # Build
-build/
 *.o
 *.a
 *.so
