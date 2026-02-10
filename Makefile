@@ -1,68 +1,63 @@
-# certifiable-deploy Makefile
-# Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
+EXES :=
+DIST :=
 
-CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Werror -Wshadow -Wconversion
-CFLAGS += -Wstrict-prototypes -fno-common -O2 -g
-CFLAGS += -I./include
+# Versioning
+VERSION ?= $(shell (git describe --tags 2>/dev/null || echo "develop") | sed 's/^v//')
+REVISION ?= $(shell git rev-parse --short HEAD)
 
-# Source files
-AUDIT_SRC = src/audit/sha256.c src/audit/domain_hash.c
-ATTEST_SRC = src/attest/merkle.c
-TARGET_SRC = src/target/target.c
-VERIFY_SRC = src/verify/verify.c
+export VERSION
+export REVISION
 
-ALL_SRC = $(AUDIT_SRC) $(ATTEST_SRC) $(TARGET_SRC) $(VERIFY_SRC)
+# Build configuration (overrideable)
+# build2 requires out-of-source builds. Default to parent directory with compiler suffix.
+SRCDIR := $(notdir $(CURDIR))
+SCRIPTS_DIR ?= ./certifiable-build/scripts
+BUILD_DIR ?= ../build2/$(SRCDIR)-default
+BUILD_TYPE ?= release
+PREFIX ?= /usr/local
 
-# Test executables
-TEST_AUDIT = tests/unit/test_audit
-TEST_ATTEST = tests/unit/test_attest
-TEST_TARGET = tests/unit/test_target
-TEST_VERIFY = tests/unit/test_verify
+# Export for scripts
+export BUILD_DIR
+export BUILD_TYPE
+export PREFIX
 
-.PHONY: all clean test test-audit test-attest test-target test-verify
+.PHONY: all help setup start-tt config build test install package release clean
 
-all: $(TEST_AUDIT) $(TEST_ATTEST) $(TEST_TARGET) $(TEST_VERIFY)
+all: config build test
 
-# Test executables
-$(TEST_AUDIT): tests/unit/test_audit.c $(AUDIT_SRC)
-	$(CC) $(CFLAGS) -o $@ $^
+##@ Dependencies
+setup: ## Setup project
+	$(SCRIPTS_DIR)/setup.sh
 
-$(TEST_ATTEST): tests/unit/test_attest.c $(AUDIT_SRC) $(ATTEST_SRC)
-	$(CC) $(CFLAGS) -o $@ $^
+##@ Development
+config: ## Configure the build
+	$(SCRIPTS_DIR)/config.sh
 
-$(TEST_TARGET): tests/unit/test_target.c $(TARGET_SRC)
-	$(CC) $(CFLAGS) -o $@ $^
+build: ## Build the project
+	$(SCRIPTS_DIR)/build.sh
 
-$(TEST_VERIFY): tests/unit/test_verify.c $(ALL_SRC)
-	$(CC) $(CFLAGS) -o $@ $^
+start-tt: ## Start the Tenstorrent container
+	$(SCRIPTS_DIR)/start-tt.sh
 
-# Test targets
-test-audit: $(TEST_AUDIT)
-	./$(TEST_AUDIT)
+##@ Testing
+test: ## Run tests
+	$(SCRIPTS_DIR)/test.sh
 
-test-attest: $(TEST_ATTEST)
-	./$(TEST_ATTEST)
+##@ Project Management
+install: build ## Install the project
+	$(SCRIPTS_DIR)/install.sh
 
-test-target: $(TEST_TARGET)
-	./$(TEST_TARGET)
+package: ## Build release artifacts
+	$(SCRIPTS_DIR)/package.sh
 
-test-verify: $(TEST_VERIFY)
-	./$(TEST_VERIFY)
+release: ## Publish release artifacts
+	$(SCRIPTS_DIR)/release.sh
 
-test: all
-	@echo ""
-	@echo "========================================"
-	@echo "  certifiable-deploy test suite"
-	@echo "========================================"
-	@./$(TEST_AUDIT)
-	@./$(TEST_ATTEST)
-	@./$(TEST_TARGET)
-	@./$(TEST_VERIFY)
-	@echo "========================================"
-	@echo "  All tests passed!"
-	@echo "========================================"
+##@ Maintenance
+clean: ## Remove all build artifacts
+	$(SCRIPTS_DIR)/clean.sh
 
-clean:
-	rm -f $(TEST_AUDIT) $(TEST_ATTEST) $(TEST_TARGET) $(TEST_VERIFY)
-	rm -f *.o src/*/*.o tests/unit/*.o
+##@ Documentation
+help: ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Makefile Usage:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
