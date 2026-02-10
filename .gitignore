@@ -1,3 +1,44 @@
+.bdep/
+
+# Local default options files.
+#
+.build2/local/
+
+# Compiler/linker output.
+#
+*.d
+*.t
+*.i
+*.i.*
+*.ii
+*.ii.*
+*.o
+*.obj
+*.gcm
+*.pcm
+*.ifc
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.exe
+*.exe.dlls/
+*.exe.manifest
+*.pc
+
+# Build2 symlinks exes from build dir to src dir for convenient
+tests/unit/test_attest
+tests/unit/test_audit
+tests/unit/test_target
+tests/unit/test_verify
+tests/unit/test_bundle
+tests/unit/test_loader
+tests/unit/test_manifest
+
 # Build
 build/
 *.o
