@@ -1,0 +1,19 @@
+tests = exe{test_attest test_audit test_bundle test_loader test_manifest test_target test_verify}
+
+
+exe{test_attest}: c{test_attest} ../../src/liba{certifiable_deploy}
+exe{test_audit}: c{test_audit} ../../src/liba{certifiable_deploy}
+exe{test_bundle}: c{test_bundle} ../../src/liba{certifiable_deploy}
+exe{test_loader}: c{test_loader} ../../src/liba{certifiable_deploy}
+exe{test_manifest}: c{test_manifest} ../../src/liba{certifiable_deploy}
+exe{test_target}: c{test_target} ../../src/liba{certifiable_deploy}
+exe{test_verify}: c{test_verify} ../../src/liba{certifiable_deploy}
+
+$tests:
+{
+  c.coptions += -UNDEBUG
+  c.libs += -lm
+  test = true
+}
+
+./: $tests
