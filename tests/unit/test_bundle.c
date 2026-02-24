@@ -20,6 +20,20 @@
 static int tests_run = 0;
 static int tests_passed = 0;
 
+static void fclosep(FILE **f) {
+    if (*f) { fclose(*f); }
+}
+
+static void freep(void *p) {
+    free(*(void **)p);
+}
+
+#if defined(__GNUC__) || defined(__clang__)
+#define CLEANUP(func) __attribute__((cleanup(func)))
+#else
+#define CLEANUP(func)
+#endif
+
 #define TEST(name) static int name(void)
 #define RUN_TEST(name) do { \
     tests_run++; \
@@ -203,32 +217,30 @@ TEST(test_le_null_safety)
 TEST(test_builder_init)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     ASSERT(fp != NULL);
     ASSERT_EQ(cd_builder_init(&ctx, fp), CD_BUNDLE_OK);
     ASSERT_EQ(ctx.state, CD_BUILD_STATE_WRITING);
     ASSERT_EQ(ctx.toc_count, 0);
     ASSERT_EQ(ctx.header.magic, CD_CBF_MAGIC_HEADER);
     ASSERT_EQ(ctx.header.version, CD_CBF_VERSION);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_null_args)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     ASSERT(fp != NULL);
     ASSERT_EQ(cd_builder_init(NULL, fp), CD_BUNDLE_ERR_NULL);
     ASSERT_EQ(cd_builder_init(&ctx, NULL), CD_BUNDLE_ERR_NULL);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_add_sorted)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t h = {{0}};
     uint8_t data[] = "test";
     ASSERT(fp != NULL);
@@ -237,14 +249,13 @@ TEST(test_builder_add_sorted)
     ASSERT_EQ(cd_builder_add_file(&ctx, "b.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&ctx, "c.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(ctx.toc_count, 3);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_reject_unsorted)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t h = {{0}};
     uint8_t data[] = "test";
     ASSERT(fp != NULL);
@@ -252,14 +263,13 @@ TEST(test_builder_reject_unsorted)
     ASSERT_EQ(cd_builder_add_file(&ctx, "b.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&ctx, "a.bin", data, sizeof(data), &h), CD_BUNDLE_ERR_NOT_SORTED);
     ASSERT_EQ(ctx.faults.domain, 1);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_reject_duplicate)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t h = {{0}};
     uint8_t data[] = "test";
     ASSERT(fp != NULL);
@@ -267,14 +277,13 @@ TEST(test_builder_reject_duplicate)
     ASSERT_EQ(cd_builder_add_file(&ctx, "a.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&ctx, "a.bin", data, sizeof(data), &h), CD_BUNDLE_ERR_DUPLICATE);
     ASSERT_EQ(ctx.faults.domain, 1);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_empty_file)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t h = {{0}};
     cd_hash_t root = {{0xAA}};
     ASSERT(fp != NULL);
@@ -284,27 +293,25 @@ TEST(test_builder_empty_file)
     ASSERT_EQ(ctx.toc_count, 1);
     ASSERT_EQ(ctx.toc[0].size, 0);
     ASSERT_EQ(cd_builder_finalize(&ctx, &root, false, NULL), CD_BUNDLE_OK);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_add_null_data_nonzero_len)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t h = {{0}};
     ASSERT(fp != NULL);
     ASSERT_EQ(cd_builder_init(&ctx, fp), CD_BUNDLE_OK);
     /* NULL data with non-zero length is an error */
     ASSERT_EQ(cd_builder_add_file(&ctx, "test.bin", NULL, 100, &h), CD_BUNDLE_ERR_NULL);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_finalize_with_signature)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t h = {{0x11}};
     cd_hash_t root = {{0xAA, 0xBB, 0xCC, 0xDD}};
     uint8_t signature[64];
@@ -317,27 +324,25 @@ TEST(test_builder_finalize_with_signature)
     ASSERT_EQ(cd_builder_add_file(&ctx, "test.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_finalize(&ctx, &root, true, signature), CD_BUNDLE_OK);
     ASSERT_EQ(ctx.state, CD_BUILD_STATE_FINALIZED);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_finalize_signature_null_error)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t root = {{0xAA}};
     ASSERT(fp != NULL);
     ASSERT_EQ(cd_builder_init(&ctx, fp), CD_BUNDLE_OK);
     /* has_signature=true but signature=NULL is an error */
     ASSERT_EQ(cd_builder_finalize(&ctx, &root, true, NULL), CD_BUNDLE_ERR_ATTESTATION);
-    fclose(fp);
     return 1;
 }
 
 TEST(test_builder_state_machine)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t h = {{0}};
     cd_hash_t root = {{0xAA}};
     uint8_t data[] = "test";
@@ -356,7 +361,6 @@ TEST(test_builder_state_machine)
     /* Cannot finalize twice */
     ASSERT_EQ(cd_builder_finalize(&ctx, &root, false, NULL), CD_BUNDLE_ERR_STATE);
 
-    fclose(fp);
     return 1;
 }
 
@@ -368,13 +372,13 @@ TEST(test_full_build_read_cycle)
 {
     cd_builder_ctx_t builder;
     cd_reader_ctx_t reader;
-    FILE *fp;
+    CLEANUP(fclosep) FILE *fp;
     uint8_t manifest[] = "{\"version\":1}";
     uint8_t weights[] = {0x01, 0x02, 0x03, 0x04};
     cd_hash_t mh = {{0x11}};
     cd_hash_t wh = {{0x22}};
     cd_hash_t root = {{0xAA, 0xBB, 0xCC, 0xDD}};
-    uint8_t *bundle;
+    CLEANUP(freep) uint8_t *bundle;
     size_t bundle_size;
     const cd_toc_entry_t *entry;
     const uint8_t *data_ptr;
@@ -396,7 +400,6 @@ TEST(test_full_build_read_cycle)
     bundle = (uint8_t *)malloc(bundle_size);
     ASSERT(bundle != NULL);
     ASSERT_EQ(fread(bundle, 1, bundle_size, fp), bundle_size);
-    fclose(fp);
 
     /* Parse */
     ASSERT_EQ(cd_reader_init(&reader, bundle, bundle_size), CD_READ_OK);
@@ -432,7 +435,6 @@ TEST(test_full_build_read_cycle)
 
     ASSERT_EQ(cd_reader_find_entry(&reader, "nonexistent", &entry), CD_READ_ERR_PATH_NOT_FOUND);
 
-    free(bundle);
     return 1;
 }
 
@@ -440,12 +442,12 @@ TEST(test_full_cycle_with_signature)
 {
     cd_builder_ctx_t builder;
     cd_reader_ctx_t reader;
-    FILE *fp;
+    CLEANUP(fclosep) FILE *fp;
     uint8_t data[] = "signed payload";
     cd_hash_t h = {{0x11}};
     cd_hash_t root = {{0xAA, 0xBB, 0xCC, 0xDD}};
     uint8_t signature[64];
-    uint8_t *bundle;
+    CLEANUP(freep) uint8_t *bundle;
     size_t bundle_size;
 
     memset(signature, 0x42, sizeof(signature));
@@ -463,7 +465,6 @@ TEST(test_full_cycle_with_signature)
     bundle = (uint8_t *)malloc(bundle_size);
     ASSERT(bundle != NULL);
     ASSERT_EQ(fread(bundle, 1, bundle_size, fp), bundle_size);
-    fclose(fp);
 
     ASSERT_EQ(cd_reader_init(&reader, bundle, bundle_size), CD_READ_OK);
     ASSERT_EQ(cd_reader_parse_header(&reader), CD_READ_OK);
@@ -473,7 +474,6 @@ TEST(test_full_cycle_with_signature)
     ASSERT_EQ(reader.footer.has_signature, true);
     ASSERT_EQ(memcmp(reader.footer.signature, signature, 64), 0);
 
-    free(bundle);
     return 1;
 }
 
@@ -599,7 +599,7 @@ TEST(test_little_endian_format)
 TEST(test_builder_fault_flags)
 {
     cd_builder_ctx_t ctx;
-    FILE *fp = tmpfile();
+    CLEANUP(fclosep) FILE *fp = tmpfile();
     cd_hash_t h = {{0}};
     uint8_t data[] = "test";
     const cd_fault_flags_t *faults;
@@ -617,8 +617,6 @@ TEST(test_builder_fault_flags)
     ASSERT_EQ(cd_builder_add_file(&ctx, "b.bin", data, sizeof(data), &h), CD_BUNDLE_OK);
     ASSERT_EQ(cd_builder_add_file(&ctx, "a.bin", data, sizeof(data), &h), CD_BUNDLE_ERR_NOT_SORTED);
     ASSERT_EQ(faults->domain, 1);
-
-    fclose(fp);
 
     /* NULL context */
     ASSERT(cd_builder_get_faults(NULL) == NULL);
