@@ -372,13 +372,13 @@ TEST(test_full_build_read_cycle)
 {
     cd_builder_ctx_t builder;
     cd_reader_ctx_t reader;
-    CLEANUP(fclosep) FILE *fp;
+    CLEANUP(fclosep) FILE *fp = NULL;
     uint8_t manifest[] = "{\"version\":1}";
     uint8_t weights[] = {0x01, 0x02, 0x03, 0x04};
     cd_hash_t mh = {{0x11}};
     cd_hash_t wh = {{0x22}};
     cd_hash_t root = {{0xAA, 0xBB, 0xCC, 0xDD}};
-    CLEANUP(freep) uint8_t *bundle;
+    CLEANUP(freep) uint8_t *bundle = NULL;
     size_t bundle_size;
     const cd_toc_entry_t *entry;
     const uint8_t *data_ptr;
@@ -442,12 +442,12 @@ TEST(test_full_cycle_with_signature)
 {
     cd_builder_ctx_t builder;
     cd_reader_ctx_t reader;
-    CLEANUP(fclosep) FILE *fp;
+    CLEANUP(fclosep) FILE *fp = NULL;
     uint8_t data[] = "signed payload";
     cd_hash_t h = {{0x11}};
     cd_hash_t root = {{0xAA, 0xBB, 0xCC, 0xDD}};
     uint8_t signature[64];
-    CLEANUP(freep) uint8_t *bundle;
+    CLEANUP(freep) uint8_t *bundle = NULL;
     size_t bundle_size;
 
     memset(signature, 0x42, sizeof(signature));
