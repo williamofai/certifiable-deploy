@@ -1,0 +1,28 @@
+import cd = certifiable-deploy%liba{certifiable-deploy}
+
+tests = exe{ \
+  certifiable_deploy_test_attest \
+  certifiable_deploy_test_audit \
+  certifiable_deploy_test_bundle \
+  certifiable_deploy_test_loader \
+  certifiable_deploy_test_manifest \
+  certifiable_deploy_test_target \
+  certifiable_deploy_test_verify \
+  }
+
+exe{certifiable_deploy_test_attest}: c{test_attest} $cd
+exe{certifiable_deploy_test_audit}: c{test_audit} $cd
+exe{certifiable_deploy_test_bundle}: c{test_bundle} $cd
+exe{certifiable_deploy_test_loader}: c{test_loader} $cd
+exe{certifiable_deploy_test_manifest}: c{test_manifest} $cd
+exe{certifiable_deploy_test_target}: c{test_target} $cd
+exe{certifiable_deploy_test_verify}: c{test_verify} $cd
+
+$tests:
+{
+  c.coptions += -UNDEBUG
+  c.libs += -lm
+  test = true
+}
+
+./: $tests

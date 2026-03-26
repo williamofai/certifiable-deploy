@@ -1,0 +1,16 @@
+: 1
+name: certifiable-deploy-tests
+version: 0.1.0-a.0.z
+language: c
+project: certifiable-deploy
+summary: Certifiable inference engine with deterministic behavior
+license: other: proprietary
+description-file: README.md
+url: https://github.com/SpeyTech/certifiable-deploy
+package-url: https://github.com/SpeyTech/certifiable-deploy/certifiable-deploy-tests
+build-error-email: william@fstopify.com
+builds: default
+builds: -windows
+builds: -binddist
+requires: * build2 >= 0.16.0
+requires: * bpkg >= 0.16.0

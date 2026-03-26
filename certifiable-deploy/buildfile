@@ -1,0 +1,14 @@
+./: liba{certifiable-deploy} \
+    doc{README.md} \
+    legal{LICENSE} \
+    manifest
+
+liba{certifiable-deploy}: \
+  c{src/**} \
+  h{include/*}
+{
+  dist = true
+  export = true
+}
+
+liba{certifiable-deploy}: c.export.poptions = "-I$src_root/include"

@@ -11,3 +11,4 @@ package-url: https://github.com/SpeyTech/certifiable-deploy
 package-email: packaging@build2.org ; Mailing list.
 depends: * build2 >= 0.16.0
 depends: * bpkg >= 0.16.0
+tests: certifiable-deploy-tests == $
