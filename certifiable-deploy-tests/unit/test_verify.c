@@ -6,11 +6,11 @@
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  */
 
-#include "../../include/cd_types.h"
-#include "../../include/cd_audit.h"
-#include "../../include/cd_attest.h"
-#include "../../include/cd_target.h"
-#include "../../include/cd_verify.h"
+#include "cd_types.h"
+#include "cd_audit.h"
+#include "cd_attest.h"
+#include "cd_target.h"
+#include "cd_verify.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

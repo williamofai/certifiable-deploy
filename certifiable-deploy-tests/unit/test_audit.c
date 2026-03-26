@@ -6,8 +6,8 @@
  * Copyright (c) 2026 The Murray Family Innovation Trust. All rights reserved.
  */
 
-#include "../../include/cd_types.h"
-#include "../../include/cd_audit.h"
+#include "cd_types.h"
+#include "cd_audit.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
