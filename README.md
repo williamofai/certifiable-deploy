@@ -74,11 +74,40 @@ JIT hash verification with fail-closed state machine. No execution without verif
 ## Quick Start
 
 ### Build
+
+All project tasks are available as Makefile targets, and GitHub Actions CI uses
+these to ensure that they are not stale. Documentation of the commands are
+available via `make help`.
+
+When building the project for the first time, run `make deps`.
+
+To building everything (i.e. config, build, test), run `make`. Otherwise, use
+individual Makefile targets as desired.
+
 ```bash
-mkdir build && cd build
-cmake ..
-make
-make test-all  # Run all 7 test suites
+$ make help
+Makefile Usage:
+  make <target>
+
+Dependencies
+  deps             Install project dependencies
+
+Development
+  config           Configure the build
+  build            Build the project
+
+Testing
+  test             Run tests
+
+Project Management
+  install          Install the project
+  release          Build release artifacts
+
+Maintenance
+  clean            Remove all build artifacts
+
+Documentation
+  help             Display this help
 ```
 
 ### Expected Output
